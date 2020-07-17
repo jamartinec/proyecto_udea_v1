@@ -14,11 +14,14 @@ import bisect
 
 from pqdict import pqdict
 
-from ..graph import Grafo
-from ..minpath import minimum_directed_path
-from ..utils import inv
-from ..caminos import DFS
-from ..caminos import caminos_simples_st_prioritize_minlenFIFO
+from src.combopt.graph import Grafo
+# también se puede from ..graph import Grafo
+
+#from ..graph import Grafo
+#from ..minpath import minimum_directed_path
+#from ..utils import inv
+#from ..caminos import DFS
+#from ..caminos import caminos_simples_st_prioritize_minlenFIFO
 
 
 
@@ -163,7 +166,7 @@ def Bidirectional_Dijkstra(G,l,s,t):
         t: Integer or string denoting the sink vertex.
 
     Returns:
-        The shortest path distance between the vertices source s and sink t.
+        The shortest path and its distance, between the vertices source s and sink t.
 
     """
 
@@ -244,8 +247,7 @@ def Bidirectional_Dijkstra(G,l,s,t):
 
     path = inicio + final
 
-    print(path, label_total[joint])
-    return path
+    return (path, label_total[joint])
 
 ### implementaciones ineficientes###
 def pareto_set(A):
@@ -486,6 +488,7 @@ def preserve_pareto_frontier(A, new_label):
     """
 
     # Este algoritmo tiene complejidad O(n), donde n es la longitud de A.
+    index=list()
     contador, comparacion = 0, True
     for i in range(len(A)):
 
@@ -504,20 +507,22 @@ def preserve_pareto_frontier(A, new_label):
             if contador == 1:
                 A[i] = new_label
             else:
-                del A[i]
+                index.append(i)
             comparacion = False
 
         # no(b < nueva_etiqueta) and no(nueva_etiqueta<b)
-        elif ((new_label[0] <= A[i][0]  or new_label[0] <= A[i][0] )
+        elif ((new_label[0] <= A[i][0]  or new_label[1] <= A[i][1] )
               and (A[i][0] <= new_label[0]  or A[i][1] <= new_label[1] )):
             pass
+    for j in sorted(index, reverse=True):
+        del A[j]
+
     if comparacion == True:
         # si la nueva etiqueta no domina y no es dominada por
         # ninguna etiqueta de A, entonces insertamos esta
         # nueva etiqueta manteniendo el orden Lex. bisect tiene
         # complejidad O(n).
-        bisect.insort(A,new_label)
-
+        bisect.insort(A, new_label)
 
     return A
 
@@ -542,13 +547,13 @@ def contain_pareto_frontier(A,new_label):
 
         A[0] = new_label
         insertado = True
-    elif ((new_label[0] <= A[0][0]  or new_label[0] <= A[0][0] )
+    elif ((new_label[0] <= A[0][0]  or new_label[1] <= A[0][1] )
               and (A[0][0] <= new_label[0]  or A[0][1] <= new_label[1] )):
         bisect.insort(A, new_label)
         insertado = True
 
 
-    return A, insertado
+    return (A, insertado)
 
 def spptw_desrochers1988_imp1(G,s,time,costo,ventana):
     """ First algorithm in Desrochers et al. 1988.
@@ -712,7 +717,7 @@ def spptw_desrochers1988_imp2(G,s,time,costo,ventana):
     return P
 
 def spptw_desrochers1988_imp3(G,s,time,costo,ventana):
-    """ Second algorithm in Desrochers et al. 1988.
+    """Third algorithm in Desrochers et al. 1988.
 
     In implementation #3 each Q_j is an ordered list (Lex order) and after creating a new label in the j node, it is
     attached after comparing only with the first element in the Q_j list, so that it always contains efficient labels
@@ -811,27 +816,30 @@ def min_time_cost(G,tiempo,costo):
     return (mt,mc)
 
 def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
-    """
+    """Third algorithm, using buckets,  in Desrochers et al. 1988.
+
+     In implementation 3 each Q_j is an ordered list (Lex order) and after creating a new label on the j node,
+     it is attached after comparing only with the first element in the Q_j list, so that the list always contains
+     efficient labels and potentially some inefficient labels. The new label is also added in a heap, from which it goes
+     extracting the minimum (efe_q) (and we don't worry about the inefficient labels because they are the last to be
+     removed from the heap). All tags contained in a generalized BUCKET are extended before finding F(Q) (efe_q) the
+     new minimum label in Q.
+
 
     Args:
-        G:
-        s:
-        time:
-        costo:
-        ventana:
+        G: A directed instance of Graph class.
+        s: Integer or string denoting the source vertex.
+        time: A dictionary defining a time function on the arcs.
+        costo: A dictionary defining a cost function on the arcs.
+        ventana: A dictionary defining time windows for each vertex.
+
 
     Returns:
+        A dictionary which for each vertex show the  list of efficient labels from source vertex s.
+
 
     """
-    # En la implementación 3 cada Q_j es una lista ordenada (orden Lex)
-    # y tras crear una nueva etiqueta en el nodo j, se anexa tras comparar únicamente
-    # con el primer elemento de la lista Q_j, de modo que ésta siempre contiene
-    # etiquetas eficientes y potencialmente algunas etiquetas no eficientes.
-    # también se adiciona la nueva etiqueta en un heap, del cual se va
-    # extrayendo el mínimo (efe_q) (y no nos preocupamos por
-    # las etiquetas no eficientes porque son las últimas en ser extraídas del heap).
-    # Se extienden todas las etiquetas contenidas en un BUCKET generalizado
-    # antes de encontrar F(Q) (efe_q) la nueva etiqueta mínima en Q.
+
 
     # Paso 1: inicialización
     # Calcular la dupla (mt,mc) que es el mínimo entre las parejas (tiempo, costo)
@@ -898,4 +906,4 @@ def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
 
     return P
 
-def espptw_feillet2004(G,s,time, costo,ventana):
+#def espptw_feillet2004(G,s,time, costo,ventana):
