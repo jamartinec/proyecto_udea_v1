@@ -2,43 +2,159 @@
 import heapq
 from src.combopt.graph import Grafo
 from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
+from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
 from sortedcontainers import SortedList
 
 
-def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
+# def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
+#     """First algorithm in Desrochers et al. 1988. (modified)
+#
+#     We guarantee at all times that the Pareto Front will be preserved. For this purpose we make use of a
+#     class for the Front, so that upgrade operations are efficient. In order to
+#     analogous to Dijkstra's algorithm we distinguish two types of labels:
+#
+#     1) The labels that have not been treated or extended. They are stored in:
+#         A minheap under the lexicographic order to which the new labels generated are added.
+#         From the minheap the smallest label is extracted in Lex order among all the Untreated labels of all
+#         the vertices. When this label (let's call it a minlabel) is extracted, the following conditions are checked:
+#
+#           a)  If the minlabel is part of the DISCARDED label set in a previous iteration, then it is NOT extended.
+#               We do this check first because it is cheap O(1). See below to understand when a label is added to
+#               DISCARDS.
+#           b)  We look at the vertex to which this minlabel corresponds and we go to the instance of the Pareto Front
+#               class of the TREATED labels of that vertex. If any in TREATEDs dominates the new label then it is added to
+#               DISCARDED and NOT extended. Otherwise the Pareto front of the TREATED labels is updated and the extension
+#               is done. Note that any extension to a dominated label will be dominated by a label that was already
+#               included in the minheap.
+#
+#      2) A new label resulting from the extension of the minlabel (NOT dominated by someone in the TREATED and NOT
+#         previously DISCARDED) is entered into the minheap if it satisfies the following:
+#           a) It has not been previously DISCARDED.
+#           b) It is not dominated by any label in the Pareto class instance containing the UNTREATED ones of the vertex
+#           over which it is defined.
+#
+#           Note that the criteria for entering heap and the criteria for being extended after leaving heap are the same.
+#           Both TREATED and UNTREATED structures are Pareto structures.
+#           * A label is discarded when it has been eliminated or a candidate that does not enter the Pareto front of the apex to which it corresponds
+#           (and never re-enters)  in which case we know it is inefficient.
+#
+#
+#
+#
+#     Args:
+#         G: A directed instance of Graph class.
+#         s: Integer or string denoting the source vertex.
+#         time: A dictionary defining a time function on the arcs.
+#         costo: A dictionary defining a cost function on the arcs.
+#         ventana: A dictionary defining time windows for each vertex.
+#
+#
+#     Returns:
+#         A dictionary which for each vertex show the  list of efficient labels from source vertex s.
+#
+#     """
+#
+#
+#     # Paso 1: inicialización
+#     # Crear un diccionario TRATADAS, donde cada clave es el entero que representa un vértice del grafo y donde el valor
+#     # es una lista que contiene las etiquetas ya extendidas. Crear un diccionario NO TRATADAS similar,
+#     # donde las listas contienen las etiquetas que aun no han sido extendidas.
+#     Discard_sets= dict({vertice: set() for vertice in G.vertices})
+#     Treated_labels = dict({vertice: Pareto_Frontier(vertice,[]) for vertice in G.vertices})
+#     Non_treated_labels = dict({vertice: Pareto_Frontier(vertice,[(float("inf"), float("inf"))]) for vertice in G.vertices})
+#     Non_treated_labels[s] = Pareto_Frontier(s,[(0, 0)])
+#     label_heap = [((0,0),s)]
+#
+#     # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
+#
+#     while label_heap:
+#         # Se extrae la menor etiqueta en orden lexicográfico de cualquiera de los nodos.
+#         (efe_q, actual) = heapq.heappop(label_heap)
+#         # la etiqueta efe_q sale de NO TRATADAS[actual]
+#         Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(efe_q)
+#
+#
+#         # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas. De estarlo nos devolvemos y
+#         # extraemos (pop) una nueva etiqueta del minheap.
+#         if efe_q in Discard_sets[actual]:
+#             continue
+#         else:
+#             # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna etiqueta en
+#             # Treated_labels[actual]
+#
+#             updated_front, check, discarded_after_update = Treated_labels[actual].preserve_pareto(efe_q)
+#             # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
+#             # agrega a las etiquetas descartadas.
+#             if check == False:
+#                 Discard_sets[actual].add(efe_q)
+#                 continue
+#             else:
+#                 # si la etiqueta fue insertada en el frente de pareto, actualizamos éste, y también las posibles
+#                 # etiquetas descartadas tras la actualización del frente.
+#                 Treated_labels[actual] = updated_front
+#                 Discard_sets[actual].union(discarded_after_update)
+#                 # Extender la etiqueta efe_q desde actual. Una extensión es factible si se cumple ventanas de tiempo.
+#                 for vecino in G.succesors(actual):
+#                     if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+#                         label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
+#                         label_cost = efe_q[1] + costo[(actual, vecino)]
+#                         new_label = (label_time, label_cost)
+#
+#                         # Antes de actualizar el frente de Pareto de etiquetas NO TRATADAS de vecino, verificamos si
+#                         # new_label está en DESCARTADAS o está dominada por alguna etiqueta en TRATADAS[vecino], en cuyo
+#                         # caso no se ingresa a NO TRATADAS , pues a partir de ella se generarán más etiquetas dominadas.
+#
+#                         if new_label in Discard_sets[vecino]:
+#                             continue
+#                         else:
+#                             ## ACÁ SOLO VERIFICAR si new label es dominado por alguien en TRATADOS (sin agregar)
+#                             check = Treated_labels[vecino].check_dominance(new_label)
+#                             if check == True:
+#                                 Discard_sets[vecino].add(new_label)
+#                                 continue
+#                             else:
+#                                 Non_treated_labels[vecino], insertado, U = Non_treated_labels[vecino].preserve_pareto(new_label)
+#                                 if insertado == True:
+#                                     heapq.heappush(label_heap, (new_label, vecino))
+#                                 else:
+#                                     pass
+#
+#
+#     P = dict({vertice: Treated_labels[vertice].to_list() for vertice in G.vertices})
+#     print('mire pa que vea', P)
+#     return P
+
+def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True):
     """First algorithm in Desrochers et al. 1988. (modified)
 
-    Garantizamos en todo momento que se preserve el Frente de Pareto. Para ello hacemos uso de una
-    clase para el Frente, de modo que las operaciones de actualización sean eficientes. De forma
-    análoga al algoritmo de Dijkstra distinguimos dos tipos de etiquetas:
-    1) Las etiquetas  que no han sido tratadas o extendidas. Se almacenan en:
-          Un minheap bajo el orden lexicográfico al cual se van añadiendo las nuevas etiquetas generadas.
-          Del minheap se extrae la menor etiqueta en orden Lex entre todas las etiquetas NO TRATADAS de todos
-          los vértices. Cuando esta etiqueta (llamémosla efe_q o minlabel) se extrae se verifican las siguientes
-          condiciones:
+    We guarantee at all times that the Pareto Front will be preserved. For this purpose we make use of a
+    class for the Front, so that upgrade operations are efficient. In order to
+    analogous to Dijkstra's algorithm we distinguish two types of labels:
 
-          a)  Si la etiqueta efe_q (ó minlabel)  hace parte del conjunto de etiquetas DESCARTADAS en una iteración previa,
-              entonces NO se extiende. Primero hacemos esta comprobación porque es barata O(1). Ver más abajo para
-              entender cuándo una etiqueta se agrega a DESCARTADAS.
-          b)  Miramos el vértice al cual corresponde esta etiqueta efe_q y vamos a la instancia de la clase Frente
-              de Pareto de las etiquetas TRATADAS de ese vértice. Si alguna en TRATADAS domina a la nueva etiqueta
-              entonces esta se agrega a DESCARTADAS y NO se extiende. De lo contrario se actualiza el frente de pareto en
-              de las etiquetas TRATADAS y se procede con la extensión. Note que cualquier extensión de una etiqueta
-              dominada estará dominada por alguna etiqueta que ya fue incluida en el minheap.
+    1) The labels that have not been treated or extended. They are stored in:
+        A minheap under the lexicographic order to which the new labels generated are added.
+        From the minheap the smallest label is extracted in Lex order among all the Untreated labels of all
+        the vertices. When this label (let's call it a minlabel) is extracted, the following conditions are checked:
 
-     2) Una nueva etique (new_label) resultante de la extensión de la etiqueta efe_q (NO dominada por alguien en
-            TRATADAS y NO previamente DESCARTADA) se ingresa al minheap si satisface lo siguiente:
+          a)  If the minlabel is part of the DISCARDED label set in a previous iteration, then it is NOT extended.
+              We do this check first because it is cheap O(1). See below to understand when a label is added to
+              DISCARDS.
+          b)  We look at the vertex to which this minlabel corresponds and we go to the instance of the Pareto Front
+              class of the TREATED labels of that vertex. If any in TREATEDs dominates the new label then it is added to
+              DISCARDED and NOT extended. Otherwise the Pareto front of the TREATED labels is updated and the extension
+              is done. Note that any extension to a dominated label will be dominated by a label that was already
+              included in the minheap.
 
-          a) No ha sido previamente DESCARTADA.
-          b) No es dominada por alguna etiqueta en la instancia de la clase Pareto que contiene las NOTRATADAS
-             del vértice sobre el cual está definida.
+     2) A new label resulting from the extension of the minlabel (NOT dominated by someone in the TREATED and NOT
+        previously DISCARDED) is entered into the minheap if it satisfies the following:
+          a) It has not been previously DISCARDED.
+          b) It is not dominated by any label in the Pareto class instance containing the UNTREATED ones of the vertex
+          over which it is defined.
 
-          Note que el criterio para entrar al heap y el criterio para ser extendida tras salir del heap es el mismo
-          Tanto TRATADAS como NO TRATADAS son estructuras Pareto.
-
-             * Una etiqueta es descartada cuando ha sido:
-               -- Eliminada o candidata que no entra al frente de pareto del vértice al que corresponde
-               (y nunca vuelve a entrar) en cuyo caso sabemos que es ineficiente.
+          Note that the criteria for entering heap and the criteria for being extended after leaving heap are the same.
+          Both TREATED and UNTREATED structures are Pareto structures.
+          * A label is discarded when it has been eliminated or a candidate that does not enter the Pareto front of the apex to which it corresponds
+          (and never re-enters)  in which case we know it is inefficient.
 
 
 
@@ -62,33 +178,34 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
     # es una lista que contiene las etiquetas ya extendidas. Crear un diccionario NO TRATADAS similar,
     # donde las listas contienen las etiquetas que aun no han sido extendidas.
     Discard_sets= dict({vertice: set() for vertice in G.vertices})
-    Treated_labels = dict({vertice: Pareto_Frontier(vertice,[]) for vertice in G.vertices})
-    Non_treated_labels = dict({vertice: Pareto_Frontier(vertice,[(float("inf"), float("inf"))]) for vertice in G.vertices})
+    Treated_labels = dict({vertice: ParetoFrontier(vertice) for vertice in G.vertices})
+    Non_treated_labels = dict({vertice: ParetoFrontier(vertice, [(float("inf"), float("inf"))]) for vertice in G.vertices})
     Non_treated_labels[s] = Pareto_Frontier(s,[(0, 0)])
-    label_heap = [((0,0),s)]
-
+    label_heap = [( (0,0), s, (None, None) )]
+    # efe_q  es lo mismo que minlabel (corregir)
     # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
 
     while label_heap:
         # Se extrae la menor etiqueta en orden lexicográfico de cualquiera de los nodos.
-        (efe_q, actual) = heapq.heappop(label_heap)
+        (minlabel, actual, trazador) = heapq.heappop(label_heap)
         # la etiqueta efe_q sale de NO TRATADAS[actual]
-        Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(efe_q)
+        Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(minlabel)
 
 
         # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas. De estarlo nos devolvemos y
         # extraemos (pop) una nueva etiqueta del minheap.
-        if efe_q in Discard_sets[actual]:
+        if minlabel in Discard_sets[actual]:
             continue
         else:
             # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna etiqueta en
             # Treated_labels[actual]
 
-            updated_front, check, discarded_after_update = Treated_labels[actual].preserve_pareto(efe_q)
+            updated_front, check, discarded_after_update = Treated_labels[actual].add(minlabel,trazador)
+            print(updated_front.list_frontlabels())
             # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
             # agrega a las etiquetas descartadas.
             if check == False:
-                Discard_sets[actual].add(efe_q)
+                Discard_sets[actual].add(minlabel)
                 continue
             else:
                 # si la etiqueta fue insertada en el frente de pareto, actualizamos éste, y también las posibles
@@ -97,10 +214,11 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
                 Discard_sets[actual].union(discarded_after_update)
                 # Extender la etiqueta efe_q desde actual. Una extensión es factible si se cumple ventanas de tiempo.
                 for vecino in G.succesors(actual):
-                    if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
-                        label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
-                        label_cost = efe_q[1] + costo[(actual, vecino)]
+                    if minlabel[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+                        label_time = max(ventana[vecino][0], minlabel[0] + time[(actual, vecino)])
+                        label_cost = minlabel[1] + costo[(actual, vecino)]
                         new_label = (label_time, label_cost)
+                        new_trazador= (actual,minlabel)
 
                         # Antes de actualizar el frente de Pareto de etiquetas NO TRATADAS de vecino, verificamos si
                         # new_label está en DESCARTADAS o está dominada por alguna etiqueta en TRATADAS[vecino], en cuyo
@@ -115,15 +233,56 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
                                 Discard_sets[vecino].add(new_label)
                                 continue
                             else:
-                                Non_treated_labels[vecino], insertado, U = Non_treated_labels[vecino].preserve_pareto(new_label)
+                                Non_treated_labels[vecino], insertado, U = Non_treated_labels[vecino].add(new_label, new_trazador)
                                 if insertado == True:
-                                    heapq.heappush(label_heap, (new_label, vecino))
+                                    heapq.heappush(label_heap, (new_label, vecino,new_trazador))
                                 else:
                                     pass
+    if output_type== True:
+        P = dict({vertice: Treated_labels[vertice].list_frontlabels() for vertice in G.vertices})
+        print('mire pa que vea', P)
+        return P
+    else:
+        return Treated_labels
 
 
-    P = dict({vertice: Treated_labels[vertice].to_list() for vertice in G.vertices})
-    print('mire pa que vea', P)
+def retrieve_path(label,vertex,Treated_labels):
+
+    frontier = Treated_labels[vertex]
+    partial_path = [vertex]
+    (vert_prev, etiq_prev) = frontier.label_track(label[0])
+
+    while vert_prev != None:
+        partial_path.append(vert_prev)
+        frontier = Treated_labels[vert_prev]
+        (vert_prev, etiq_prev) = frontier.label_track(etiq_prev[0])
+    return partial_path.reverse()
+
+def retrieve_paths_inpareto(vertex, Treated_labels):
+    # una mega lista donde cada entrada sea la tupla ( label, partialpath)
+    megalista=list()
+    for label in Treated_labels[vertex]:
+        partial_path=retrieve_path(label,vertex,Treated_labels)
+        megalista.append((label,partial_path))
+    return megalista
 
 
-    return P
+
+
+### pilas, necesitamos Treated_labels[vertex].ALGUNAFUNCION()
+#Donde ALGUNAFUNCION es un método de la instancia pareto frontier que retorna un iterable con las etiquetas de ese frente
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
