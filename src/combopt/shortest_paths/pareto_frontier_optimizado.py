@@ -1,4 +1,4 @@
-
+# coding: utf8
 
 from sortedcontainers import SortedList
 import numpy as np
@@ -10,18 +10,41 @@ class ParetoFrontier():
         # El último elemento de sucesores va a tener como sucesor a infinito.
 
         self.sucesores_map = {0: np.inf}
-        self.predecesores_map = {np.inf: 0}
+        self.predecesores_map = {np.inf: 0, 0: None}
         self.contenedor = []
         self.sorted_list = SortedList(self.contenedor)
         self.pareto_map = {0: np.inf}
         ##############################################################################
         self.vertex = vertex  # PILAS, ACABO DE AGREGAR ESTE
-        self.info_label = dict() # A cada etiqueta apunta a una dupla con vértice previo y x_previo ¿hay que incicializar?
+        self.info_label = {} # A cada etiqueta apunta a una dupla con vértice previo y x_previo ¿hay que incicializar?
+        self.lista_labels = []
 
         if lista != None:
-
             for label in lista:
-                self.add(label)
+                if label == (0,0):
+                    trazador = (None, None)
+                else:
+                    trazador = None
+
+                self.add(label, trazador)
+
+    def show_pareto(self):
+        return self.pareto_map
+
+    def show_pareto2(self):
+        return self.pareto_map, self.sucesores_map, self.predecesores_map
+
+    #def to_list(self):
+    #   return list(self.sorted_list)
+
+    def list_frontlabels(self):
+        #TIENE PROBLEMAS!
+        #lista = self.to_list()
+
+        for x in self.sorted_list:
+            self.lista_labels.append((x, self.pareto_map[x]))
+        return self.lista_labels
+
 
     def x_in_pareto(self, x):
         return x in self.pareto_map
@@ -76,17 +99,18 @@ class ParetoFrontier():
             self.contenedor.append(x)
             self.sorted_list.add(x)
         elif x not in self.sorted_list:
+            self.contenedor.append(x)
             self.sorted_list.add(x)
 
         self.pareto_map[x] = y
         if trazadorx != None:
             self.info_label[x] = trazadorx
 
-        print('PILAS',(x,y))
+        #print('PILAS',(x,y))
         indi_pareto_modified = True
 
         sucesor = self.sucesores_map[x]
-        print('cuando x es:', x, 'sucesor es:',sucesor)
+        #print('cuando x es:', x, 'sucesor es:',sucesor)
 
         if pure_pareto == False:
 
@@ -99,7 +123,7 @@ class ParetoFrontier():
 
         else:
             while sucesor < np.inf:
-                print('ENTRAMOS AL WHILE cuando x es:', x, 'sucesor es:', sucesor)
+                #print('ENTRAMOS AL WHILE cuando x es:', x, 'sucesor es:', sucesor)
                 # Pilas, cuando una etiqueta se elimina del frente, debemos borrar también la información
                 # consignada en info_label
                 if self.pareto_map[sucesor] > y:
@@ -123,9 +147,7 @@ class ParetoFrontier():
                 sucesor = self.sucesores_map[x]
         return self, indi_pareto_modified, discard_set
 
-    #def locate_label(self, label):
-    #    x = label[0]
-    #    y = label[1]
+
 
     def Delete_label(self, label):
         x = label[0]
@@ -145,23 +167,9 @@ class ParetoFrontier():
             self.sorted_list.remove(x)
             return self
         else:
-            raise ValueError()
+            #raise ValueError()
+            print('PILAS HAY ALGO RARO')
 
-    def show_pareto(self):
-        return self.pareto_map
-
-    def show_pareto2(self):
-        return self.pareto_map, self.sucesores_map, self.predecesores_map
-
-    def to_list(self):
-        return list(self.sorted_list)
-
-    def list_frontlabels(self):
-        lista = self.to_list()
-        lista_labels = list()
-        for x in lista:
-            lista_labels.append((x, self.pareto_map[x]))
-        return lista_labels
 
     def label_track(self, x):
         return self.info_label[x]
