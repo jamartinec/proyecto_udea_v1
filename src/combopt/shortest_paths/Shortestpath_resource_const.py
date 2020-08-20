@@ -1,7 +1,7 @@
 # coding: utf8
 import heapq
 from src.combopt.graph import Grafo
-from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
+#from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
 from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
 from sortedcontainers import SortedList
 
@@ -180,7 +180,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
     Discard_sets= dict({vertice: set() for vertice in G.vertices})
     Treated_labels = dict({vertice: ParetoFrontier(vertice) for vertice in G.vertices})
     Non_treated_labels = dict({vertice: ParetoFrontier(vertice, [(float("inf"), float("inf"))]) for vertice in G.vertices})
-    Non_treated_labels[s] = Pareto_Frontier(s,[(0, 0)])
+    Non_treated_labels[s] = ParetoFrontier(s,[(0, 0)]) # pilas, no estamos usando trazador!!!
     label_heap = [( (0,0), s, (None, None) )]
     # efe_q  es lo mismo que minlabel (corregir)
     # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
@@ -188,9 +188,12 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
     while label_heap:
         # Se extrae la menor etiqueta en orden lexicográfico de cualquiera de los nodos.
         (minlabel, actual, trazador) = heapq.heappop(label_heap)
+        print('minlabel!!', minlabel)
+        print('actual!',actual)
         # la etiqueta efe_q sale de NO TRATADAS[actual]
+        print('Non_treatedlabelsANTES', Non_treated_labels[actual].list_frontlabels())
         Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(minlabel)
-
+        print('Non_treatedlabels', Non_treated_labels[actual].list_frontlabels())
 
         # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas. De estarlo nos devolvemos y
         # extraemos (pop) una nueva etiqueta del minheap.
@@ -201,7 +204,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
             # Treated_labels[actual]
 
             updated_front, check, discarded_after_update = Treated_labels[actual].add(minlabel,trazador)
-            print(updated_front.list_frontlabels())
+            #print(updated_front.list_frontlabels())
             # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
             # agrega a las etiquetas descartadas.
             if check == False:
@@ -240,37 +243,57 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
                                     pass
     if output_type== True:
         P = dict({vertice: Treated_labels[vertice].list_frontlabels() for vertice in G.vertices})
-        print('mire pa que vea', P)
+        #print('mire pa que vea', P)
         return P
     else:
         return Treated_labels
 
+# PILAS, NO ES BUENA IDEA GUARDAR CAMINOS EN DICCIONARIOS CON KEYS ETIQUETAS: pueden haber dos etiquetas
+# exactamente iguales producidas mediante caminos distintos. Posibilidad: Guardar como listas de tripletas
+# donde la primera entrada es la etiqueta, la segunda entrada es el camino como lista y la tercera entrada
+# sea el conjunto de vértices incluidos en dicho camino.
 
 def retrieve_path(label,vertex,Treated_labels):
 
     frontier = Treated_labels[vertex]
     partial_path = [vertex]
+    partial_path_set = {vertex}
     (vert_prev, etiq_prev) = frontier.label_track(label[0])
+    #print('Esto es lo que retorna label track que es infolabel',(vert_prev,etiq_prev))
 
     while vert_prev != None:
         partial_path.append(vert_prev)
+        partial_path_set.add(vert_prev)
+        #print('este es el partialpath', partial_path)
         frontier = Treated_labels[vert_prev]
         (vert_prev, etiq_prev) = frontier.label_track(etiq_prev[0])
-    return partial_path.reverse()
+    partial_path.reverse()
+    partial_path_inner = partial_path[1:-1]
+    return partial_path_inner,  partial_path, partial_path_set
 
 def retrieve_paths_inpareto(vertex, Treated_labels):
-    # una mega lista donde cada entrada sea la tupla ( label, partialpath)
-    megalista=list()
-    for label in Treated_labels[vertex]:
-        partial_path=retrieve_path(label,vertex,Treated_labels)
-        megalista.append((label,partial_path))
-    return megalista
-
-
-
+    # Vamos a guardar en diccionario porque, debido a la estructura de Pareto Set, no es posible
+    # que existan dos etiquetas iguales en el frente de Pareto. Garantiza que la clave sea única.
+    dict_paths = dict()
+    dict_paths_set = dict()
+    dict_paths_inner = dict()
+    for label in Treated_labels[vertex].list_frontlabels():
+        partial_path_inner, partial_path, partial_path_set = retrieve_path(label,vertex,Treated_labels)
+        dict_paths[label] = partial_path
+        dict_paths_inner[label] = partial_path_inner
+        dict_paths_set[label] = partial_path_set
+    return dict_paths_inner, dict_paths, dict_paths_set
 
 ### pilas, necesitamos Treated_labels[vertex].ALGUNAFUNCION()
 #Donde ALGUNAFUNCION es un método de la instancia pareto frontier que retorna un iterable con las etiquetas de ese frente
+
+def slave_function(G,source,sink,time,costo,ventana):
+
+    Frentes_Pareto = spptw_desrochers1988_imp_fullpareto(G,source,time,costo,ventana, output_type=False)
+    Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set = retrieve_paths_inpareto(sink, Frentes_Pareto)
+
+    return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
+
 
 
 
