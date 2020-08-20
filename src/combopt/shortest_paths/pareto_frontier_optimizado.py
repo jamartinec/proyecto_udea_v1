@@ -38,11 +38,16 @@ class ParetoFrontier():
     #   return list(self.sorted_list)
 
     def list_frontlabels(self):
-        #TIENE PROBLEMAS!
-        #lista = self.to_list()
+        ## PILAS, ESTO ES MUY INEFICIENTE Y SÓLO LO TENGO PARA HACER PRINTS, NOTE QUE SIEMPRE RECONSTRUYE
+        #LA LISTA DESDE EL PRINCIPIO.
+        self.lista_labels = []
+        #print('en list_frontlabels sorted_list:', self.sorted_list )
+        #print('en list_frontlabels lista labels',self.lista_labels)
 
         for x in self.sorted_list:
+            #print('en list_frontlabels: x en sorted_list',x)
             self.lista_labels.append((x, self.pareto_map[x]))
+        print('lista_labels',self.lista_labels)
         return self.lista_labels
 
 
@@ -150,12 +155,16 @@ class ParetoFrontier():
 
 
     def Delete_label(self, label):
+        print('Entramos a Delete_label')
         x = label[0]
         y = label[1]
         if self.x_in_pareto(x):
+            print(x, 'está en pareto')
             del self.pareto_map[x]
+            print('así queda pareto map después de borrar', x, self.pareto_map)
             ################################################################################
             del self.info_label[x] # puede haber problemas si en info_label no está x PILAS
+            print('asi queda info_label después de borrar', x, self.info_label)
             ################################################################################
             predx = self.predecesores_map[x]
             sucx = self.sucesores_map[x]
@@ -165,10 +174,12 @@ class ParetoFrontier():
             del self.predecesores_map[x]
             self.contenedor.remove(x)
             self.sorted_list.remove(x)
+            print('esta es sorted_list después de borrar',x, self.sorted_list)
             return self
         else:
             #raise ValueError()
-            print('PILAS HAY ALGO RARO')
+            print('No está en Pareto y retorno el mismo ParetoFrontier')
+            return self
 
 
     def label_track(self, x):
