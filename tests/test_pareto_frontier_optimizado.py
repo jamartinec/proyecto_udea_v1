@@ -2,7 +2,7 @@
 
 from pytest import raises
 from sortedcontainers import SortedList
-import numpy as np
+#import numpy as np
 
 from src.combopt.shortest_paths import ParetoFrontier
 vertex = 0
@@ -38,6 +38,8 @@ def test_ParetoFrontier_delete():
     print('predecesores', predecesores_mapa)
     A = pareto.list_frontlabels()
     print(A)
+
+
 
 
 
