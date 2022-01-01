@@ -1,0 +1,155 @@
+1) Necesitamos ensamblar el algoritmo de generación de etiquetas (Label Setting similar a Dijkstra)
+como subproblema del método de generación de columnas. Para ello se necesita que dada una etiqueta en el
+conjunto de Pareto del nodo depot de llegada, se pueda reconstruir la ruta que lo origina.
+
+2) Cada frente de Pareto de las etiquetas tratadas está asociado a un vértice particular.
+Una primera posibilidad es vincular explícitamente el frente con su vértice y crear alguna estructura
+¿un diccionario? que para cada etiqueta apunte al vértice al cuál pertenecía la etiqueta que fue extendida
+hasta formar esta.
+
+Etiqueta (en Pareto de v)--> vértice previo y etiqueta previa --> .....---> vértice depot origen, etiqueta (0,0)
+
+3) Una propiedad importante que se podría aprovechar acá es que en cada frente de pareto las coordenadas x
+son únicas.
+
+x (en Pareto de v)---> x_previo (en Pareto de v_previo)---> .....---> 0 (en vértice depot origen).
+
+Guardar las etiquetas como (costo (x), tiempo (y), vertex_previo, x_previo)
+
+PILAS, NO ES BUENA IDEA GUARDAR CAMINOS EN DICCIONARIOS CON KEYS ETIQUETAS: pueden haber dos etiquetas
+exactamente iguales producidas mediante caminos distintos. Posibilidad: Guardar como listas de tripletas
+donde la primera entrada es la etiqueta, la segunda entrada es el camino como lista y la tercera entrada
+sea el conjunto de vértices (sólo clientes) incluidos en dicho camino.
+
+########################################################################################
+
+4) Consultar cómo resolver el problema maestro de programación lineal usando SCIP. Una vez se
+tenga esto, asesorarse de Ricardo para integrar problema maestro y esclavo.
+
+5) Provisionalmente, mientras logro instalar SCIP opt,  utilizar la interfaz python para Gurobi.
+
+6) Por el momento, notar que un paso importante es la elección o generación de conjunto Omega_1
+inicial, que definirá el primer problema maestro. Feillet 2010 dice:
+"An issue that have to be carefully handled is the definition of the inital set of
+columns. Besides the issues of efficiency, it is sometimes difficult to define a set
+of columns guaranteeing the feasibility of the Restricted Master Problem. A typical
+case is when the number of available vehicles is limited. A possibility is then to add
+dummy variables. It is important to see that any kind of variable can be added without
+interfering with the solution scheme. One just has to be sure when introducing these
+variables that they are going to be set to zero in the optimal integer solution (unless
+the problem is unfeasible). Preferably, they should also be equal to zero when linear
+relaxations of Restricted Master Problems are solved (unless no solutions with these
+variables equal to zero exist). Otherwise, the quality of the bounding scheme would
+be impacted negatively. Several ways can be used for defining these dummy variables.
+In the context of the VRPTW, one can for example add a single dummy variable with
+coefficient 1 in all constraints of type (11), coefficient 0 in constraint (12) and a high
+value in the objective function. One can rather prefer to add one variable per constraint
+of type (11), with similar characteristics (coefficient 1 and high value in the objective).
+The choice between these possibilities pertains to the convergence of the algorithm:
+different dummy variable definitions imply different dual constraints and possibly
+different dual optimal solutions (see Sect. 4.5 for a discussion on convergence issues).
+Basically, these variables can be interpreted as costly subcontracted routes added to Omega."
+
+Observaciones sobre la implementación del problema maestro:
+
+1) ¿Cuál es la mejor estructura(s) para Omega? El problema esclavo retorna las rutas que
+conformarán Omega guardadas como listas de nodos, indicando el orden.
+Tal vez convenga que el problema esclavo también retorne para cada lista ruta, un conjunto que
+contenga los vértices (distintos del depot) pertenecientes a la ruta, de modo que sea O(1)
+pregutar si un vértice está en una ruta.
+
+2) El problema esclavo recibe las rutas que conformarán Omega, y para cada una de ellas (k) debe crear
+una variable (no negativa) \Theta_k. ¿Cómo generar expresiones con la interfaz python de Gurobi, que vayan
+progresivamente dentro de un ciclo for?
+
+3) Para investigar la Api python de gurobi, intetar usar un proyecto en pycharm con los ejemplos.
+También para verificar que gurobipy funciona bien.
+
+4) Crear una lista de listas a[i][k]  donde i corre en vértices (no depot) y k corre en rutas.
+lo único a tener en cuenta acá, es el rango de i.
+
+5) Convendría agregar a la estructura Grafo, una opción para ingresar el grafo con depot repetido.
+
+6) Notar que entre iteraciones el modelo maestro cambia en lo siguiente: , hay que definir más variables, se extiende la función objetivo,
+el número de restricciones se mantiene igual, pero para cada una de ellas el número de sumandos va aumentando.
+¿Cómo se hace esto con Gurobi?. R// Con addVar usando el objeto Column.
+
+"feasModel.addVar(obj=1.0, name="ArtP_" + c.Constrname, column=Column([1], [c]))
+We use the column argument of the addVar method to specify the set of constraints in which the new variable participates,
+as well as the associated coefficients. In this example, the new variable only participates in the constraint to be
+relaxed. Default values are used here for all variables attributes except the objective and the variable name."
+
+Ver: Model.addVar()
+New variable object.
+
+Example usage:
+
+  x = model.addVar()                                     # all default arguments
+  y = model.addVar(vtype=GRB.INTEGER, obj=1.0, name="y") # arguments by name
+  z = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "z")       # arguments by position
+
+Ver: Column object in Gurobi.
+Gurobi column object. A column consists of a list of coefficient, constraint pairs. Columns are used to represent
+the set of constraints in which a variable participates, and the associated coefficients. They are temporary objects
+that typically have short lifespans.
+
+Ver: Column constructor:
+Arguments:
+coeffs (optional): Lists the coefficients associated with the members of constrs.
+constrs (optional): Constraint or constraints that participate in expression. If constrs is a list, then coeffs must contain a list of the same length. If constrs is a single constraint, then coeffs must be a scalar.
+Return value:
+An expression object.
+Example usage:
+col = Column()
+col = Column(3, c1)
+col = Column([1.0, 2.0], [c1, c2])
+
+7) ADVERTENCIA: Con Gurobi no podremos implementar Branch & Price, sólo Column Generation:
+ Tobias Achterberg:
+
+ "Gurobi does not support branch-and-price (which means to also add columns at local nodes of the search tree). What you
+  can do with Gurobi is so-called "column generation". This means to solve the root LP relaxation in a loop with your
+  pricer producing new columns until the pricer does not find any additional improving variables. Then, you would
+  install the integrality restrictions for the variables of the final root LP relaxation and solve the resulting problem
+  as a MIP.
+
+But note that this procedure will only be a heuristic. Because you are not generating additional columns at the local
+nodes of the MIP search tree, it could be that you are missing the optimal solution. But in many cases,
+column generation is a pretty good heuristic."
+
+--" Is it possible to use Gurobi's MIP solver to stop the MIP-run after branching at each node, then generate some new
+columns using pricer & solve the new LP-relaxation, and then continue the old MIP run from where it was stopped?"
+
+--R/ Tobias Achterberg: "No, unfortunately not. Gurobi's data structures and algorithms are designed for a fixed number
+of variables during the solving process. Hence, if you add more variables, you need to start from scratch.
+What you could do is to let your MIP run until some point (some reasonable solution is available, or even until
+optimality), then look at the incumbent solution (and maybe also at other solutions in the solution pool) and generate
+new variables that would potentially be able to improve those solutions. Then, start the MIP solve from scratch with the
+extended model.
+
+But note that such an approach would also just be heuristic and doesn't guarantee global optimality.
+To get global optimality you need to apply branch-and-price, which means that you have to use a different framework
+that supports this. For example, you could use SCIP. But note that this will be a major implementation effort."
+
+8) Sobre la instalación de SCIP en Windows:
+Del mailing list de Scip opt:
+"if you really don't want to leave the comfort of your Windows 10
+environment, I can recommend WSL:
+https://docs.microsoft.com/en-us/windows/wsl/install-win10
+This allows to just call for example `sudo apt-get install zlib`. I
+prefer this over MSYS/Cygwin/MinGW, although your mileage may vary.
+In general though, Linux will provide the best experience concerning
+installation with all the third party dependencies.
+Please understand that we cannot give you in-depth instructions on how
+to setup your system."
+
+9) Crear una función que tome el vector de variables duales y la función de costos (sobre aristas) más
+reciente y devuelva una nueva función de costos. Gurobi va a retornar las variables duales en una lista,
+siguiendo el orden de los vértices clientes. La función de costos está dada como un diccionario que a
+cada arista le asigna un valor (no negativo?).
+
+Si no se considera la restricción del número de vehículos no habría variable dual asociada al depot inicial.
+(el depot final no importa, pues de éste no sale ninguna arista). Para los vértices (i) con variale dual asociada
+el nuevo costo sería:  cij - lambda_i.
+
+10) PILAS!!!! LA CONDICIÓN DE TERMINACIÓN DEL ALGORITMO ES INCORRECTA!!!!!

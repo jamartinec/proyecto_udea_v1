@@ -116,3 +116,21 @@ def test_linked_node():
     assert nodo3.tolist() == [3]
 
 
+def test_graph_consumos_initialization():
+
+    vertices=[0,1,2,3,4]
+    arcos = [(0,1),(0,2),(0,3),(1,4),(2,4),(3,4)]
+    tiempo_nodos ={v:0 for v in vertices} # no hay tiempo de espera en los nodos
+    demanda_nodos={v:1 for v in vertices} # supongamos demanda unitaria
+    tiempo_arcos = {(0,1):8,(0,2):5,(0,3):12,(1,4):4,(2,4):2,(3,4):4}
+    demanda_arcos ={a:0 for a in arcos} # no hay demanda en los arcos, sólo en los nodos
+    ventanas_tiempo = {0:[0,0],1:[6,14],2:[9,12],3:[8,12],4:[9,15]}
+    ventanas_demanda ={v:5 for v in vertices}
+
+
+    # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
+    cost  = {(0,1):3,(0,2):5,(0,3):2,(1,4):7,(2,4):6,(3,4):3}
+
+    recursos_nodos={'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
+    recursos_arcos={'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
+    restricciones_nodos ={'tiempo':ventanas_tiempo,'demanda':ventanas_demanda}

@@ -13,8 +13,10 @@ import heapq
 import bisect
 
 from pqdict import pqdict
+from blist import sortedset
 
 from src.combopt.graph import Grafo
+#from src.combopt.shortest_paths.pareto_frontier_structure import Label
 # también se puede from ..graph import Grafo
 
 #from ..graph import Grafo
@@ -526,34 +528,181 @@ def preserve_pareto_frontier(A, new_label):
 
     return A
 
-def contain_pareto_frontier(A,new_label):
-    """ Find a list that contains the Pareto frontier after adding a new label.
-
-    Given an ordered list A (under lexicographical order) of n efficient (time, cost) labels, and a new new_label
-    checks if it dominates A[0], in which case A[0] = new_label. A still has all the efficient labels and potentially
-    some inefficient labels.
+def check_dominance(A,new_label,B):
+    """ Checks if any label in the list A dominates the new_label.
 
     Args:
-        A: A list of pairs in ascending Lex order.
+        A: List of labels/pairs
+        new_label: A new label/pair
+        B: A set with discarded labels
+
+    Returns:
+        indicador: A boolean that is True if some label in A dominates new_label
+        B: the set of discarded labels, possibly updated.
+    """
+
+    indicador = False
+    for i in range(len(A)):
+        if A[i][0] < new_label[0] and A[i][1] < new_label[1]:
+            indicador = True
+            B.add(new_label)
+            break
+    return  indicador, B
+
+def contain_pareto_frontier(A,new_label,B):
+    """ Find a list that contains the Pareto frontier after adding a new label.
+
+    Given a minheap A (under lexicographical order) of n efficient (time, cost) labels, and a new new_label
+    checks if it dominates A[0], in which case A[0] = new_label (the root of the heap). A still has all the efficient
+    labels and potentially some inefficient labels.
+
+    Args:
+        A: A minheap of pairs/labels.
         new_label: A new label pair (time, cost).
+        B: A set of pairs/labels that were discarded
 
     Returns:
         A: the resulting list according if the label was inserted or not.
         insertado: A boolean that is True if the new label was added to A.
+        B: The set of discarded pairs possible updated.
     """
 
     insertado = False
+    # si new_label domina a la primera etiqueta de A
     if (new_label[0] < A[0][0] and new_label[1] < A[0][1]):
-
+        B.add(A[0])
         A[0] = new_label
         insertado = True
-    elif ((new_label[0] <= A[0][0]  or new_label[1] <= A[0][1] )
-              and (A[0][0] <= new_label[0]  or A[0][1] <= new_label[1] )):
-        bisect.insort(A, new_label)
+    # si las etiquetas no son comparables
+    elif ((new_label[0] <= A[0][0]  or new_label[1] <= A[0][1])
+              and (A[0][0] <= new_label[0]  or A[0][1] <= new_label[1])):
+        heapq.heappush(A, new_label)
+        #bisect.insort(A, new_label)
         insertado = True
 
+    else:
+        B.add(new_label)
 
-    return (A, insertado)
+    return (A, insertado,B)
+
+def spptw_desrochers1988_imp_MEJORADA(G,s,time,costo,ventana):
+    """Third algorithm in Desrochers et al. 1988.
+
+    Garantizamos en todo momento que se preserve el Frente de Pareto. Para ello hacemos uso de una
+    clase para el Frente, de modo que las operaciones de actualización sean eficientes. De forma
+    análoga al algoritmo de Dijkstra distinguimos dos tipos de etiquetas:
+    1) Las etiquetas  que no han sido tratadas o extendidas. Se almacenan en:
+          Un minheap bajo el oden lexicográfico al cual se van añadiendo las nuevas etiquetas generadas.
+          Del minheap se extrae la menor etiqueta en orden Lex entre todas las etiquetas NO TRATADAS de todos
+          los vértices. Cuando esta etiqueta (llamémosla efe_q o minlabel) se extrae se verifican las siguientes
+          condiciones:
+
+          a)  Si la etiqueta efe_q (ó minlabel)  hace parte del conjunto de etiquetas DESCARTADAS en una iteración previa,
+              entonces NO se extiende. Primero hacemos esta comprobación porque es barata O(1). Ver más abajo para
+              entender cuándo una etiqueta se agrega a DESCARTADAS.
+          b)  Miramos el vértice al cual corresponde esta etiqueta efe_q y vamos a la instancia de la clase Frente
+              de Pareto de las etiquetas TRATADAS de ese vértice. Si alguna en TRATADAS domina a la nueva etiqueta
+              entonces esta se agrega a DESCARTADAS y NO se extiende. Note que cualquier extensión de una etiqueta
+              dominada estará dominada por alguna etiqueta que ya fue incluida en el minheap.
+
+     2) Una nueva etique (new_label) resultante de la extensión de la etiqueta efe_q (NO dominada por alguien en
+            TRATADAS y NO previamente DESCARTADA) se ingresa al minheap si satisface lo siguiente:
+
+          a) No ha sido previamente DESCARTADA.
+          b) No es dominada por alguna etiqueta en la instancia de la clase Pareto que contiene las NOTRATADAS
+             del vértice sobre el cual está definida.
+
+          Note que el criterio para entrar al heap y el criterio para ser extendida tras salir del heap es el mismo
+          Tanto TRATADAS como NO TRATADAS son estructuras Pareto.
+
+             * Una etiqueta es descartada cuando ha sido:
+               -- Eliminada o candidata que no entra al frente de pareto del vértice al que corresponde
+               (y nunca vuelve a entrar) en cuyo caso sabemos que es ineficiente.
+
+
+
+
+    Args:
+        G: A directed instance of Graph class.
+        s: Integer or string denoting the source vertex.
+        time: A dictionary defining a time function on the arcs.
+        costo: A dictionary defining a cost function on the arcs.
+        ventana: A dictionary defining time windows for each vertex.
+
+
+    Returns:
+        A dictionary which for each vertex show the  list of efficient labels from source vertex s.
+
+    """
+
+
+    # Paso 1: inicialización
+    # Crear un diccionario P, donde cada clave es el entero que representa
+    # un vértice del grafo y donde el valor es una lista que contiene
+    # las etiquetas ya extendidas. Crear un diccionario Q similar a P,
+    # donde las listas contienen las etiquetas que aun no han sido extendidas.
+    S = dict({vertice: set() for vertice in G.vertices})
+    P = dict({vertice: sortedset([]) for vertice in G.vertices})
+    Q = dict({vertice: [(float("inf"), float("inf"))] for vertice in G.vertices})
+    Q[s] = [(0, 0)]
+    label_heap = [((0,0),s)]
+
+    # Paso 2: Extender efe_q, contener el frente de Pareto
+    # en cada lista Q[j].
+
+    while label_heap:
+
+        (efe_q, actual) = heapq.heappop(label_heap)
+
+        # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna
+        # etiqueta en P[actual]
+        check, S[actual] =  check_dominance(P[actual], efe_q, S[actual])
+        # si alguien en P[actual] domina a efe_q, continuamos con la iteración del while
+        if check == True:
+            pass
+        else:
+            # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas
+            if efe_q in S[actual]:
+                pass
+            else:
+                # Extender la etiqueta efe_q desde nodo actual. Una extensión
+                # es factible si se respetan ventanas de tiempo.
+
+                for vecino in G.succesors(actual):
+                    if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+                        label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
+                        label_cost = efe_q[1] + costo[(actual, vecino)]
+                        new_label = (label_time, label_cost)
+                        print('new label', new_label)
+                        # Antes de actualizar el frente de Pareto verificamos si new_label está dominada por
+                        # alguna etiqueta en P[vecino], en cuyo caso no tiene sentido ingresar a las
+                        # posibles etiquetas, pues de ella se generarán más etiquetas dominadas.
+                        check_int, S[vecino] = check_dominance(P[vecino], new_label, S[vecino])
+                        if  check_int == False:
+                            # Actualizar el frente de Pareto (potencialmente hay etiquetas no eficientes)
+                            Q[vecino], insertado, S[vecino] = contain_pareto_frontier(Q[vecino], new_label, S[vecino])
+                            if insertado == True:
+                                heapq.heappush(label_heap, (new_label, vecino))
+                        else:
+                            pass
+                # Como la etiqueta efe_q perteneciente al nodo "actual" ya fue extendida
+                # (es decir, tratada) actualizamos las listas P[actual] y Q[actual]
+
+                P[actual].add(efe_q)
+                heapq.heappop(Q[actual])
+
+
+    # Paso 4: Como para cada nodo j, la lista  P_j puede tener etiquetas no
+    # eficientes, reducimos la lista hasta quedar sólo con el frente de Pareto.
+    # como las listas ya están ordenadas en orden Lex, el costo es O(D), donde D
+    # es el número de posibles etiquetas. NO ENTIENDO POR QUÉ EL ARTÍCULO DICE
+    # QUE ES O(d) con d la máxima amplitud de una ventana de tiempo.
+
+    for vertice in G.vertices:
+        P[vertice] = reduce_to_pareto_frontier(P[vertice])
+
+    print('Este es P',P)
+    return P
 
 def spptw_desrochers1988_imp1(G,s,time,costo,ventana):
     """ First algorithm in Desrochers et al. 1988.
@@ -746,8 +895,8 @@ def spptw_desrochers1988_imp3(G,s,time,costo,ventana):
     # un vértice del grafo y donde el valor es una lista que contiene
     # las etiquetas ya extendidas. Crear un diccionario Q similar a P,
     # donde las listas contienen las etiquetas que aun no han sido extendidas.
-
-    P = dict({vertice: [] for vertice in G.vertices})
+    S = dict({vertice: set() for vertice in G.vertices})
+    P = dict({vertice: sortedset([]) for vertice in G.vertices})
     Q = dict({vertice: [(float("inf"), float("inf"))] for vertice in G.vertices})
     Q[s] = [(0, 0)]
     label_heap = [((0,0),s)]
@@ -757,27 +906,44 @@ def spptw_desrochers1988_imp3(G,s,time,costo,ventana):
 
     while label_heap:
 
-        (efe_q,actual) = heapq.heappop(label_heap)
+        (efe_q, actual) = heapq.heappop(label_heap)
 
-        # Extender la etiqueta efe_q desde nodo actual. Una extensión
-        # es factible si se respetan ventanas de tiempo.
+        # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna
+        # etiqueta en P[actual]
+        check, S[actual] =  check_dominance(P[actual], efe_q, S[actual])
+        # si alguien en P[actual] domina a efe_q, continuamos con la iteración del while
+        if check == True:
+            pass
+        else:
+            # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas
+            if efe_q in S[actual]:
+                pass
+            else:
+                # Extender la etiqueta efe_q desde nodo actual. Una extensión
+                # es factible si se respetan ventanas de tiempo.
 
-        for vecino in G.succesors(actual):
-            if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
-                label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
-                label_cost = efe_q[1] + costo[(actual, vecino)]
-                new_label = (label_time, label_cost)
-                print('new label', new_label)
-                # Actualizar el frente de Pareto (potencialmente hay etiquetas no eficientes)
-                Q[vecino], insertado = contain_pareto_frontier(Q[vecino], new_label)
-                if insertado == True:
-                    heapq.heappush(label_heap, (new_label,vecino))
+                for vecino in G.succesors(actual):
+                    if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+                        label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
+                        label_cost = efe_q[1] + costo[(actual, vecino)]
+                        new_label = (label_time, label_cost)
+                        print('new label', new_label)
+                        # Antes de actualizar el frente de Pareto verificamos si new_label está dominada por
+                        # alguna etiqueta en P[vecino], en cuyo caso no tiene sentido ingresar a las
+                        # posibles etiquetas, pues de ella se generarán más etiquetas dominadas.
+                        check_int, S[vecino] = check_dominance(P[vecino], new_label, S[vecino])
+                        if  check_int == False:
+                            # Actualizar el frente de Pareto (potencialmente hay etiquetas no eficientes)
+                            Q[vecino], insertado, S[vecino] = contain_pareto_frontier(Q[vecino], new_label, S[vecino])
+                            if insertado == True:
+                                heapq.heappush(label_heap, (new_label, vecino))
+                        else:
+                            pass
+                # Como la etiqueta efe_q perteneciente al nodo "actual" ya fue extendida
+                # (es decir, tratada) actualizamos las listas P[actual] y Q[actual]
 
-        # Como la etiqueta efe_q perteneciente al nodo "actual" ya fue extendida
-        # (es decir, tratada) actualizamos las listas P[actual] y Q[actual]
-
-        P[actual].append(efe_q)
-        Q[actual].remove(efe_q)
+                P[actual].add(efe_q)
+                heapq.heappop(Q[actual])
 
 
     # Paso 4: Como para cada nodo j, la lista  P_j puede tener etiquetas no
@@ -789,7 +955,10 @@ def spptw_desrochers1988_imp3(G,s,time,costo,ventana):
     for vertice in G.vertices:
         P[vertice] = reduce_to_pareto_frontier(P[vertice])
 
+    print('Este es P',P)
     return P
+
+
 
 def min_time_cost(G,tiempo,costo):
     """ Find the lexicographical minimum among all labels.
@@ -853,7 +1022,7 @@ def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
     P = dict({vertice: [] for vertice in G.vertices})
     Q = dict({vertice: [(float("inf"), float("inf"))] for vertice in G.vertices})
     Q[s] = [(0, 0)]
-    label_heap = [((0,0),s)]
+    label_heap = [((0, 0), s)]
 
 
 
@@ -906,4 +1075,99 @@ def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
 
     return P
 
+###################################################################
+def spptw_desrochers1988_imp3V2(G,s,time,costo,ventana):
+    """Third algorithm in Desrochers et al. 1988.
+
+    In implementation #3 each Q_j is an ordered list (Lex order) and after creating a new label in the j node, it is
+    attached after comparing only with the first element in the Q_j list, so that it always contains efficient labels
+    and potentially some non-efficient labels. The new label is also added in a heap, from which the minimum is
+    extracted (efe_q) (and we don't worry about the inefficient labels because they are the last ones to be extracted
+    from the heap). In version 2 we use the class Label.
+
+
+
+    Args:
+        G: A directed instance of Graph class.
+        s: Integer or string denoting the source vertex.
+        time: A dictionary defining a time function on the arcs.
+        costo: A dictionary defining a cost function on the arcs.
+        ventana: A dictionary defining time windows for each vertex.
+
+
+    Returns:
+        A dictionary which for each vertex show the  list of efficient labels from source vertex s.
+
+    """
+
+
+    # Paso 1: inicialización
+    # Crear un diccionario P, donde cada clave es el entero que representa
+    # un vértice del grafo y donde el valor es una lista que contiene
+    # las etiquetas ya extendidas. Crear un diccionario Q similar a P,
+    # donde las listas contienen las etiquetas que aun no han sido extendidas.
+    S = dict({vertice: set() for vertice in G.vertices})
+    P = dict({vertice: [] for vertice in G.vertices})
+    Q = dict({vertice: [(float("inf"), float("inf"))] for vertice in G.vertices})
+    #Q = dict({vertice: [Label(vertice, None, float("inf"), float("inf")) ] for vertice in G.vertices})
+    Q[s] = [(0, 0)]
+    label_heap = [((0,0),s)]
+
+    # Paso 2: Extender efe_q, contener el frente de Pareto
+    # en cada lista Q[j].
+
+    while label_heap:
+
+        (efe_q, actual) = heapq.heappop(label_heap)
+
+        # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna
+        # etiqueta en P[actual]
+        check, S[actual] =  check_dominance(P[actual], efe_q, S[actual])
+        # si alguien en P[actual] domina a efe_q, continuamos con la iteración del while
+        if check == True:
+            pass
+        else:
+            # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas
+            if efe_q in S[actual]:
+                pass
+            else:
+                # Extender la etiqueta efe_q desde nodo actual. Una extensión
+                # es factible si se respetan ventanas de tiempo.
+
+                for vecino in G.succesors(actual):
+                    if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+                        label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
+                        label_cost = efe_q[1] + costo[(actual, vecino)]
+                        new_label = (label_time, label_cost)
+                        print('new label', new_label)
+                        # Antes de actualizar el frente de Pareto verificamos si new_label está dominada por
+                        # alguna etiqueta en P[vecino], en cuyo caso no tiene sentido ingresar a las
+                        # posibles etiquetas, pues de ella se generarán más etiquetas dominadas.
+                        check_int, S[vecino] = check_dominance(P[vecino], new_label, S[vecino])
+                        if  check_int == False:
+                            # Actualizar el frente de Pareto (potencialmente hay etiquetas no eficientes)
+                            Q[vecino], insertado, S[vecino] = contain_pareto_frontier(Q[vecino], new_label, S[vecino])
+                            if insertado == True:
+                                heapq.heappush(label_heap, (new_label, vecino))
+                        else:
+                            pass
+                # Como la etiqueta efe_q perteneciente al nodo "actual" ya fue extendida
+                # (es decir, tratada) actualizamos las listas P[actual] y Q[actual]
+
+                P[actual].append(efe_q)
+                heapq.heappop(Q[actual])
+
+
+    # Paso 4: Como para cada nodo j, la lista  P_j puede tener etiquetas no
+    # eficientes, reducimos la lista hasta quedar sólo con el frente de Pareto.
+    # como las listas ya están ordenadas en orden Lex, el costo es O(D), donde D
+    # es el número de posibles etiquetas. NO ENTIENDO POR QUÉ EL ARTÍCULO DICE
+    # QUE ES O(d) con d la máxima amplitud de una ventana de tiempo.
+
+    for vertice in G.vertices:
+        P[vertice] = reduce_to_pareto_frontier(P[vertice])
+
+    return P
+
+###################################################################
 #def espptw_feillet2004(G,s,time, costo,ventana):

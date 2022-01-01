@@ -179,6 +179,7 @@ class ParetoFrontier():
         else:
             #raise ValueError()
             print('No está en Pareto y retorno el mismo ParetoFrontier')
+
             return self
 
 

@@ -5,7 +5,13 @@ from .shortest_path_basic import Dijkstra, Reverse_Dijkstra, Bidirectional_Dijks
     min_time_cost
 
 from .pareto_frontier_structure import Pareto_Frontier
+from .pareto_frontier_optimizado import ParetoFrontier
+from .Shortestpath_resource_const import spptw_desrochers1988_imp_fullpareto, \
+    retrieve_path, retrieve_paths_inpareto, slave_function
 
-from .Shortestpath_resource_const import spptw_desrochers1988_imp_fullpareto
+from .Master_problemCG import covering_model, initial_covering_model,compute_dual_variables,update_covering_model
+
+from .Column_Generation import update_edge_costs,column_generation
+
 
 

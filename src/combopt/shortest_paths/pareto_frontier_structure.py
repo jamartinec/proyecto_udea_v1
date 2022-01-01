@@ -19,7 +19,7 @@ class Pareto_Frontier():
     """
 
 
-
+    ## ¿para qué necesitamos que dependa del vertex?
 
     def __init__(self, vertex, lista=None):
         """Inits Label class

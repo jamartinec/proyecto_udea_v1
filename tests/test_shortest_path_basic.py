@@ -1,6 +1,8 @@
 # coding: utf8
 
 from pytest import raises
+
+
 from src.combopt.graph import Grafo
 from src.combopt.shortest_paths import Dijkstra, Reverse_Dijkstra, Bidirectional_Dijkstra, pareto_set, SPPTW_basic, \
     SPPTW_basic_B, reduce_to_pareto_frontier, preserve_pareto_frontier, contain_pareto_frontier, \

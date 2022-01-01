@@ -4,6 +4,7 @@ from src.combopt.graph import Grafo
 #from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
 from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
 from sortedcontainers import SortedList
+from collections import deque
 
 
 # def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
@@ -186,14 +187,16 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
     # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
 
     while label_heap:
+        print('labelheap',label_heap)
         # Se extrae la menor etiqueta en orden lexicográfico de cualquiera de los nodos.
         (minlabel, actual, trazador) = heapq.heappop(label_heap)
         print('minlabel!!', minlabel)
         print('actual!',actual)
         # la etiqueta efe_q sale de NO TRATADAS[actual]
-        print('Non_treatedlabelsANTES', Non_treated_labels[actual].list_frontlabels())
+        print('Non_treatedlabelsANTES de borrar minlabel', Non_treated_labels[actual].list_frontlabels())
+        #¿hay algún problema con que la función retorne la misma instancia de la clase?
         Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(minlabel)
-        print('Non_treatedlabels', Non_treated_labels[actual].list_frontlabels())
+        print('Non_treatedlabelsDespues de borrar minlabel', Non_treated_labels[actual].list_frontlabels())
 
         # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas. De estarlo nos devolvemos y
         # extraemos (pop) una nueva etiqueta del minheap.
@@ -204,17 +207,20 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
             # Treated_labels[actual]
 
             updated_front, check, discarded_after_update = Treated_labels[actual].add(minlabel,trazador)
-            #print(updated_front.list_frontlabels())
+            print('treated_label después de agreagar minlabel',updated_front.list_frontlabels())
             # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
             # agrega a las etiquetas descartadas.
             if check == False:
                 Discard_sets[actual].add(minlabel)
+                print('No se agregó minlabel y se agregó a DISCARDSETS')
                 continue
             else:
                 # si la etiqueta fue insertada en el frente de pareto, actualizamos éste, y también las posibles
                 # etiquetas descartadas tras la actualización del frente.
+                print('MINLABEL SI SE AGREGÓ A TREATED LABELS')
                 Treated_labels[actual] = updated_front
                 Discard_sets[actual].union(discarded_after_update)
+
                 # Extender la etiqueta efe_q desde actual. Una extensión es factible si se cumple ventanas de tiempo.
                 for vecino in G.succesors(actual):
                     if minlabel[0] + time[(actual, vecino)] <= ventana[vecino][1]:
@@ -222,6 +228,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
                         label_cost = minlabel[1] + costo[(actual, vecino)]
                         new_label = (label_time, label_cost)
                         new_trazador= (actual,minlabel)
+                        print('newlabel es',new_label, 'esta en nodo:', vecino, 'y su trazador(act, minlabel) es', new_trazador)
 
                         # Antes de actualizar el frente de Pareto de etiquetas NO TRATADAS de vecino, verificamos si
                         # new_label está en DESCARTADAS o está dominada por alguna etiqueta en TRATADAS[vecino], en cuyo
@@ -294,18 +301,72 @@ def slave_function(G,source,sink,time,costo,ventana):
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
 
+class Label_feillet2004():
+    '''
+    clase para representar etiquetas en el algoritmo de feillet2004
+    '''
+    def __init__(self,name_recursos,nodos):
+        # supongamos que pasamos una lista name_recursos con los nombres de
+        # los recursos.
+
+        self.label_recursos=dict({nombre:0 for nombre in name_recursos})
+        self.label_visitas = dict({nodo:0} for nodo in nodos)
+        self.conteo = sum(self.label_visitas[nodo] for nodo in nodos)
+
+        # considerar un método que permita imprimir las etiquetas en
+        # determinado orden.
+
+
+
+
+def Extend_function_feillet2004(etiqueta,nodo):
+
+
+
+def EFF_function_feillet2004(A):
+
+
+
+def espptw_feillet2004(G,s,recursos:list, ventana:list ,costo,output_type=True):
+    # a partir del grafo dado y los recursos necesito crear una estructura
+    # para las etiquetas. De pronto conviene crear una clase, porque las etiquetas
+    # guardan información pero no están cambiando de dimensiones.
+
+    # pensemos que pasamos los diccionarios de recursos en una lista
+    # y las correspondientes restricciones o ventanas en otra, relacionadas por la posición
+
+
+    # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
+    Delta = dict({vertice: set() for vertice in G.vertices})
+    # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
+
+    # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
+    F=dict()
+
+    # Conjunto de nodos esperando a ser tratados. No se especifica cuál es la estructura adecuada,
+    # podríamos tratarlo como un cola FIFO siguiendo la mejora de moore para el algoritmo de Bellman Ford.
+    # muy importante: if maxlen is not specified, deques may grow up to an arbitrary length.
+
+    E=deque([s])
+
+    while E:
+        actual = E.pop()
+        for sucesor in G.succesors(actual):
+            F[(actual,sucesor)] =set()
+            for etiqueta in Delta[actual]:
+                if etiqueta.label_visitas[sucesor]==0:
+                    F[(actual, sucesor)].add(Extend_function_feillet2004(etiqueta,sucesor))
+            A=F[(actual, sucesor)].union(Delta[sucesor])
+            eff,indicador_change = EFF_function_feillet2004(A)
+            if indicador_change ==1:
+                E.add(sucesor)
+        E.remove(actual)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+    # para el vertice i la lista dictio[i] contiene las etiquetas ??
+    # debemos recordar cómo está definida una etiqueta en este caso.
+    
 
