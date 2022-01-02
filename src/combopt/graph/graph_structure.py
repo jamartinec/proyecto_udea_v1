@@ -18,7 +18,7 @@ class Grafo_consumos():
 
     """
 
-    def __init__(self, vertices, aristas, directed=False,recursos_nodos=None, recursos_arcos=None ,restricciones_nodos=None):
+    def __init__(self, vertices, aristas, directed=False, recursos_nodos=None, recursos_arcos=None ,restricciones_nodos=None):
         """Inits Grafo class"""
 
         self.vertices = vertices
@@ -54,24 +54,44 @@ class Grafo_consumos():
                 self._vecinos[v].add(w)
                 self._vecinos[w].add(v)
 
+        # Pilas: pensar cómo garantizar qué haya coherencia entre recursos nodos,
+        # recursos_arcos y ventanas_nodos!!
+
         # Inicializacion de la estructura de datos _info_aristas
         self._info_aristas = {(v, w): dict() for v, w in aristas}
         if not self.directed:
             self._info_aristas.update({(w, v): dict() for v, w in aristas})
 
+        # inicialización de la estructura de datos nodo-recursos
+        self._dictio_nodo_recursos = dict()
         if directed and recursos_nodos is not None:
-            dictio = dict()
             for vertice in self.vertices:
-                dictio[vertice]=dict()
+                self._dictio_nodo_recursos[vertice]=dict()
                 for recurso_str in recursos_nodos.keys():
-                    dictio[vertice][recurso_str]=recursos_nodos[recurso_str][vertice]
+                    self._dictio_nodo_recursos[vertice][recurso_str]=recursos_nodos[recurso_str][vertice]
 
+        # inicialización de la estructura de datos arco-recursos
+        self._dictio_arco_recursos = dict()
         if directed and recursos_arcos is not None:
-            dictio2 = dict()
             for arco in self.aristas:
-                dictio2[arco]=dict()
+                self._dictio_arco_recursos[arco]=dict()
                 for recurso_str in recursos_arcos.keys():
-                    dictio2[arco][recurso_str]=recursos_arcos[recurso_str][arco]
+                    self._dictio_arco_recursos[arco][recurso_str]=recursos_arcos[recurso_str][arco]
+
+        # inicialización de la estructura de datos nodo-ventanas
+        self._dictio_nodo_ventanas = dict()
+        if directed and restricciones_nodos is not None:
+            for vertice in self.vertices:
+                self._dictio_nodo_ventanas[vertice] = dict()
+                for recurso_str in restricciones_nodos.keys():
+                    self._dictio_nodo_ventanas[vertice][recurso_str] = restricciones_nodos[recurso_str][vertice]
+
+        #inicializar una lista que contenga los nombres de los recursos considerados
+        # en determinada instancia de un Grafo_consumos
+        self._recusos_names =list()
+        if recursos_nodos is not None:
+            self._recursos_names= list(recursos_nodos.keys())
+
 
 
     def vecinos(self, v):
@@ -203,6 +223,18 @@ class Grafo_consumos():
             return delta
         else:
             raise NotImplementedError
+
+    def nodo_recursos(self):
+        return self._dictio_nodo_recursos
+
+    def nodo_ventanas(self):
+        return self._dictio_nodo_ventanas
+
+    def arco_recursos(self):
+        return self._dictio_arco_recursos
+
+    def nombres_recursos(self):
+        return self._recursos_names
 
 
     def __str__(self):

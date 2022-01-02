@@ -1,2 +1,2 @@
 # coding: utf8
-from .graph_structure import Grafo, Node, LinkedNode
+from .graph_structure import Grafo, Node, LinkedNode, Grafo_consumos

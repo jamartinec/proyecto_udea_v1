@@ -2,7 +2,7 @@
 
 from pytest import raises
 
-from src.combopt.graph import Grafo, Node, LinkedNode
+from src.combopt.graph import Grafo, Node, LinkedNode, Grafo_consumos
 
 
 def test_graph_initialization():
@@ -134,3 +134,14 @@ def test_graph_consumos_initialization():
     recursos_nodos={'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
     recursos_arcos={'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
     restricciones_nodos ={'tiempo':ventanas_tiempo,'demanda':ventanas_demanda}
+
+    mi_grafo_consumos = Grafo_consumos(vertices,
+                                       arcos,
+                                       directed=True,
+                                       recursos_nodos=recursos_nodos,
+                                       recursos_arcos=recursos_arcos,
+                                       restricciones_nodos=restricciones_nodos)
+    print('nodo recursos:\n ',mi_grafo_consumos.nodo_recursos())
+    print('nodo ventanas: \n ', mi_grafo_consumos.nodo_ventanas())
+    print('arco recursos:\n ', mi_grafo_consumos.arco_recursos())
+    print('nombres recursos \n ', mi_grafo_consumos.nombres_recursos())

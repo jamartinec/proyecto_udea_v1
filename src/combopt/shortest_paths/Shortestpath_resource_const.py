@@ -1,8 +1,8 @@
 # coding: utf8
 import heapq
-from src.combopt.graph import Grafo
+from src.combopt.graph import Grafo,Grafo_consumos
 #from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
-from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
+from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
 from sortedcontainers import SortedList
 from collections import deque
 
@@ -301,25 +301,30 @@ def slave_function(G,source,sink,time,costo,ventana):
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
 
-class Label_feillet2004():
-    '''
-    clase para representar etiquetas en el algoritmo de feillet2004
-    '''
-    def __init__(self,name_recursos,nodos):
-        # supongamos que pasamos una lista name_recursos con los nombres de
-        # los recursos.
-
-        self.label_recursos=dict({nombre:0 for nombre in name_recursos})
-        self.label_visitas = dict({nodo:0} for nodo in nodos)
-        self.conteo = sum(self.label_visitas[nodo] for nodo in nodos)
-
-        # considerar un método que permita imprimir las etiquetas en
-        # determinado orden.
 
 
 
 
 def Extend_function_feillet2004(etiqueta,nodo):
+    # esta función primero debe verificar si es posible extender la etiqueta al nodo dado, para
+    #formar una nueva etiqueta
+    nodo_partida = etiqueta.nodo_rel
+    arco = (nodo_partida,nodo)
+    indicador = True
+    # al encontrar un recurso para el cual la extensión no sea posible deja de buscar
+    nueva = dict()
+    for recurso in etiqueta.label_recursos.keys():
+        cantidad = etiqueta.label_recursos[recurso] + G.nodo_recursos()[nodo][recurso] + G.arco_recursos()[arco][recurso]
+        nueva[recurso]=cantidad
+        if cantidad > G.nodo_ventanas()[nodo][recurso][1]
+            indicador = False
+            break
+        if indicador == True:
+            for visita in etiqueta.nodo_rel
+
+
+
+
 
 
 
@@ -327,7 +332,7 @@ def EFF_function_feillet2004(A):
 
 
 
-def espptw_feillet2004(G,s,recursos:list, ventana:list ,costo,output_type=True):
+def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,output_type=True):
     # a partir del grafo dado y los recursos necesito crear una estructura
     # para las etiquetas. De pronto conviene crear una clase, porque las etiquetas
     # guardan información pero no están cambiando de dimensiones.
@@ -335,10 +340,14 @@ def espptw_feillet2004(G,s,recursos:list, ventana:list ,costo,output_type=True):
     # pensemos que pasamos los diccionarios de recursos en una lista
     # y las correspondientes restricciones o ventanas en otra, relacionadas por la posición
 
+    nombres_recursos = G.nombres_recursos()
+    vertices =G.vertices
 
     # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
-    Delta = dict({vertice: set() for vertice in G.vertices})
+    Delta = dict({vertice: set() for vertice in vertices})
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
+
+    Delta[s].add(Label_feillet2004(nodo_rel=s,name_recursos=nombres_recursos,nodos=vertices))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
     F=dict()
@@ -359,7 +368,7 @@ def espptw_feillet2004(G,s,recursos:list, ventana:list ,costo,output_type=True):
             A=F[(actual, sucesor)].union(Delta[sucesor])
             eff,indicador_change = EFF_function_feillet2004(A)
             if indicador_change ==1:
-                E.add(sucesor)
+                E.appendleft(sucesor)
         E.remove(actual)
 
 

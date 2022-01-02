@@ -5,7 +5,7 @@ from .shortest_path_basic import Dijkstra, Reverse_Dijkstra, Bidirectional_Dijks
     min_time_cost
 
 from .pareto_frontier_structure import Pareto_Frontier
-from .pareto_frontier_optimizado import ParetoFrontier
+from .pareto_frontier_optimizado import ParetoFrontier,Label_feillet2004
 from .Shortestpath_resource_const import spptw_desrochers1988_imp_fullpareto, \
     retrieve_path, retrieve_paths_inpareto, slave_function
 

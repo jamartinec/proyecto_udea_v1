@@ -190,6 +190,25 @@ class ParetoFrontier():
 
 
 
+class Label_feillet2004():
+    '''
+    clase para representar etiquetas en el algoritmo de feillet2004
+    '''
+    def __init__(self,nodo_rel,name_recursos,nodos):
+        # supongamos que pasamos una lista name_recursos con los nombres de
+        # los recursos.
+
+        self.label_recursos= dict({nombre:0 for nombre in name_recursos})
+        self.label_visitas = dict({nodo:0 for nodo in nodos})
+
+        self.conteo = 0
+
+        self.label = self.label_recursos.update(self.label_visitas)
+
+        self.nodo_rel = nodo_rel
+
+        # considerar un método que permita imprimir las etiquetas en
+        # determinado orden.
 
 
 
