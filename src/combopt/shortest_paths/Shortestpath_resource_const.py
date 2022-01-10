@@ -5,6 +5,7 @@ from src.combopt.graph import Grafo,Grafo_consumos
 from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
 from sortedcontainers import SortedList
 from collections import deque
+from copy import deepcopy
 
 
 # def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
@@ -301,28 +302,85 @@ def slave_function(G,source,sink,time,costo,ventana):
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
 
+def verificar_recursos(actual, sucesor):
 
-
+    arco = (actual, sucesor)
+    indicador = True
+    nuevos_valores = dict()
+    for recurso in etiqueta.label_recursos.keys():
+        cantidad = etiqueta.label_recursos[recurso] + G.nodo_recursos()[sucesor][recurso] + \
+                   G.arco_recursos()[arco][recurso]
+        nuevos_valores[recurso] = cantidad
+        if cantidad > G.nodo_ventanas()[sucesor][recurso][1]:
+            indicador=False
+            break
+    return indicador, nuevos_valores
 
 
 def Extend_function_feillet2004(etiqueta,nodo):
     # esta función primero debe verificar si es posible extender la etiqueta al nodo dado, para
     #formar una nueva etiqueta
     nodo_partida = etiqueta.nodo_rel
-    arco = (nodo_partida,nodo)
-    indicador = True
-    # al encontrar un recurso para el cual la extensión no sea posible deja de buscar
-    nueva = dict()
-    for recurso in etiqueta.label_recursos.keys():
-        cantidad = etiqueta.label_recursos[recurso] + G.nodo_recursos()[nodo][recurso] + G.arco_recursos()[arco][recurso]
-        nueva[recurso]=cantidad
-        if cantidad > G.nodo_ventanas()[nodo][recurso][1]
-            indicador = False
-            break
-        if indicador == True:
-            for visita in etiqueta.nodo_rel
+    # Yo creo que esto no es necesario, porque si no se cumpliera el nodo estaría marcado como inalcanzable
+    # desde el principio.
+    indicador, nuevos_valores = verificar_recursos(nodo_partida,nodo)
+    if indicador == False:
+        etiqueta.update_label_visitas([nodo])
+        return indicador, etiqueta
+
+    else:
+        # si se satisfacen las restricciones de capacidad, lo que sigue es crear una nueva etiqueta
+        # cuyo nodo de referencia sea "nodo". Para ello copiamos la etiqueta actual.
+        new_etiqueta = deepcopy(etiqueta)
+        new_etiqueta.update_nodo_rel(nodo)
+        new_etiqueta.update_label_visitas([nodo])
+        new_etiqueta.update_label_recursos(nuevos_valores)
+        # Es necesario explorar los vecinos de "nodo" para determinar si alguno de ellos es
+        # inalcanzable. Esto quiere decir que inspecciono para cada uno de ellos, si
+
+        # para cada nodo que se examine se debería guardar los nuevos valores. Es decir, si estoy
+        # considerando una etiqueta que corresponde a cierto nodo y voy a evaluar su extensión a otro nodo
+        # de entrada si no es posible tal nodo aparece marcado como inalcanzable. Si es alcanzable ya
+        # debería tener guardado los valores de todos los recursos para la etiqueta extendida.
+        # vamos a guardar esta información como un diccionario de diccionarios.
+
+        recursos_sucesores =dict()
+        for sucesor in G.succesors(new_etiqueta.nodo_rel):
+            indicador, nuevos_valores = verificar_recursos(new_etiqueta.nodo_rel,sucesor)
+            if indicador == False:
+                new_etiqueta.update_label_visitas([sucesor])
+            else:
+                recursos_sucesores[sucesor]=nuevos_valores
+
+        new_etiqueta.update_recursos_sucesores(recursos_sucesores)
+        return new_etiqueta
 
 
+def comparacion_etiqueta_par(etiquetaA,etiquetaB):
+    # Comparar etiquetaA con etiquetaB.
+    # Número de entradas de una etiqueta, contando indicadores, recursos, costo y número de visitas:
+
+
+    try:
+        assert etiquetaA.longitud ==etiquetaB.longitud
+    except:
+        raise ValueError
+
+    num_entradas = etiquetaA.longitud
+
+    A_domina = list()
+    B_domina = list()
+
+    for recurso in etiquetaA.label_recursos.keys():
+        if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
+            A_domina.append(recurso)
+        elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
+            B_domina.append(recurso)
+
+    if etiquetaA.conteo < etiquetaB.conteo:
+        # A ha visitado menos nodos que B por tanto B no puede dominar a A. Nos preguntamos si entonces
+        # A domina a B:
+        
 
 
 
@@ -363,9 +421,9 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
         for sucesor in G.succesors(actual):
             F[(actual,sucesor)] =set()
             for etiqueta in Delta[actual]:
-                if etiqueta.label_visitas[sucesor]==0:
+                if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
                     F[(actual, sucesor)].add(Extend_function_feillet2004(etiqueta,sucesor))
-            A=F[(actual, sucesor)].union(Delta[sucesor])
+            A=Delta[sucesor].union(F[(actual, sucesor)])
             eff,indicador_change = EFF_function_feillet2004(A)
             if indicador_change ==1:
                 E.appendleft(sucesor)
