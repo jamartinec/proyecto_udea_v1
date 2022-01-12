@@ -370,16 +370,139 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
 
     A_domina = list()
     B_domina = list()
+    AB_igual = list()
 
-    for recurso in etiquetaA.label_recursos.keys():
-        if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
-            A_domina.append(recurso)
-        elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
-            B_domina.append(recurso)
+    if etiquetaA.costo_acumulado < etiquetaB.costo_acumulado:
+        # B no puede dominar a A, nos preguntamos si A domina a B:
 
-    if etiquetaA.conteo < etiquetaB.conteo:
-        # A ha visitado menos nodos que B por tanto B no puede dominar a A. Nos preguntamos si entonces
-        # A domina a B:
+        if etiquetaA.conteo <= etiquetaB.conteo:
+
+            for visita in etiquetaA.label_visitas.keys():
+                if etiquetaA.label_visitas[visita] <= etiquetaB.label_visitas[visita]:
+                    A_domina.append(visita)
+
+            # si longitud longitud de A domina es igual al número de nodos, entonces A restringido a las
+            # etiquetas de visitas domina a la correspondiente restricción de B, y podemos continuar verificando
+            # si A domina a B, mirando ahora los recursos:
+
+            if len(A_domina) == len(etiquetaA.label_visitas):
+
+                for recurso in etiquetaA.label_recursos.keys():
+                    if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
+                        A_domina.append(recurso)
+                if len(A_domina)==len(etiquetaA.label_visitas)+ len(etiquetaA.label_recursos):
+                    print('PARECE QUE A DOMINA A B')
+
+            else:
+                # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
+                # visita de B que es menor que la correspondiente etiqueta de A.
+                print('A NO DOMINA A B Y B NO DOMINA A A')
+
+        elif etiquetaA.conteo > etiquetaB.conteo:
+            print('A NO DOMINA A B Y B NO DOMINA A A')
+
+    elif etiquetaB.costo_acumulado < etiquetaA.costo_acumulado:
+        # A no puede dominar a B, nos preguntamos si B domina a A:
+
+        if etiquetaB.conteo <= etiquetaA.conteo:
+
+            for visita in etiquetaB.label_visitas.keys():
+                if etiquetaB.label_visitas[visita] <= etiquetaA.label_visitas[visita]:
+                    B_domina.append(visita)
+
+            # si longitud de B_domina es igual al número de nodos, entonces B restringido a las
+            # etiquetas de visitas domina a la correspondiente restricción de A, y podemos continuar verificando
+            # si B domina a A, mirando ahora los recursos:
+
+            if len(B_domina) == len(etiquetaB.label_visitas):
+
+                for recurso in etiquetaB.label_recursos.keys():
+                    if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
+                        B_domina.append(recurso)
+                if len(B_domina)==len(etiquetaB.label_visitas)+ len(etiquetaB.label_recursos):
+                    print('PARECE QUE B DOMINA A A')
+
+            else:
+                # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
+                # visita de A que es menor que la correspondiente etiqueta de B.
+                print('B NO DOMINA A A Y A NO DOMINA A B')
+
+        elif etiquetaB.conteo > etiquetaA.conteo:
+            print('A NO DOMINA A B Y B NO DOMINA A A')
+
+    else:
+        # los costos acumulados de A y B son iguales
+        if etiquetaA.conteo < etiquetaB.conteo:
+            # nos preguntamos si A domina a B
+
+            for visita in etiquetaA.label_visitas.keys():
+                if etiquetaA.label_visitas[visita] <= etiquetaB.label_visitas[visita]:
+                    A_domina.append(visita)
+
+            # si longitud longitud de A domina es igual al número de nodos, entonces A restringido a las
+            # etiquetas de visitas domina a la correspondiente restricción de B, y podemos continuar verificando
+            # si A domina a B, mirando ahora los recursos:
+
+            if len(A_domina) == len(etiquetaA.label_visitas):
+
+                for recurso in etiquetaA.label_recursos.keys():
+                    if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
+                        A_domina.append(recurso)
+                if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
+                    print('PARECE QUE A DOMINA A B')
+            else:
+                # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
+                # visita de B que es menor que la correspondiente etiqueta de A.
+                print('A NO DOMINA A B Y B NO DOMINA A A')
+
+        elif etiquetaB.conteo < etiquetaA.conteo:
+            # nos preguntamos si B domina a A
+            for visita in etiquetaB.label_visitas.keys():
+                if etiquetaB.label_visitas[visita] <= etiquetaA.label_visitas[visita]:
+                    B_domina.append(visita)
+
+            # si longitud longitud de B domina es igual al número de nodos, entonces B restringido a las
+            # etiquetas de visitas domina a la correspondiente restricción de A, y podemos continuar verificando
+            # si B domina a A, mirando ahora los recursos:
+
+            if len(B_domina) == len(etiquetaB.label_visitas):
+
+                for recurso in etiquetaB.label_recursos.keys():
+                    if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
+                        B_domina.append(recurso)
+                if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
+                    print('PARECE QUE B DOMINA A A')
+            else:
+                # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
+                # visita de A que es menor que la correspondiente etiqueta de B.
+                print('A NO DOMINA A B Y B NO DOMINA A A')
+        else:
+            #los conteos de A y B son iguales. # miramos en cuantas A domina a B, en cuantas B domina a A
+            # y en cuantas son iguales.
+            for visita in etiquetaA.label_visitas.keys():
+                if etiquetaB.label_visitas[visita] < etiquetaA.label_visitas[visita]:
+                    B_domina.append(visita)
+                elif etiquetaA.label_visitas[visita] < etiquetaB.label_visitas[visita]:
+                    A_domina.append(visita)
+                else:
+                    AB_igual.append(visita)
+            if 
+
+
+
+
+
+        for recurso in etiquetaA.label_recursos.keys():
+            if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
+                A_domina.append(recurso)
+            elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
+                B_domina.append(recurso)
+            else:
+                A_domina.append(recurso)
+                B_domina.append(recurso)
+
+
+
         
 
 
