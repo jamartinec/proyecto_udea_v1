@@ -486,26 +486,16 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
                     A_domina.append(visita)
                 else:
                     AB_igual.append(visita)
-            if 
-
-
-
-
-
-        for recurso in etiquetaA.label_recursos.keys():
-            if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
-                A_domina.append(recurso)
-            elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
-                B_domina.append(recurso)
+            # Si ningún recurso en B domina al correspondiente recurso en A, y si hay al menos un recurso de A
+            # que domine a B, entonces A domina a B
+            if len(B_domina)==0 and len(A_domina)>0:
+                print('A DOMINA A B')
+            elif len(A_domina) ==0 and len(B_domina)>0:
+                print('B DOMINA A A')
+            elif len(A_domina)==0 and len(B_domina)==0:
+                print('A ES IDENTICO A B')
             else:
-                A_domina.append(recurso)
-                B_domina.append(recurso)
-
-
-
-        
-
-
+                print('A NO DOMINA A B Y B NO DOMINA A A')
 
 
 
