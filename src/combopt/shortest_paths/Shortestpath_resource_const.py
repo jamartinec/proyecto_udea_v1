@@ -1,4 +1,6 @@
 # coding: utf8
+from cProfile import label
+from calendar import c
 import heapq
 from src.combopt.graph import Grafo,Grafo_consumos
 #from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
@@ -356,9 +358,11 @@ def Extend_function_feillet2004(etiqueta,nodo):
         return new_etiqueta
 
 
-def comparacion_etiqueta_par(etiquetaA,etiquetaB):
+def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
     # Comparar etiquetaA con etiquetaB.
     # Número de entradas de una etiqueta, contando indicadores, recursos, costo y número de visitas:
+    # EtiquetaA: label_new
+    # EtiquetaB: label old
 
 
     try:
@@ -392,14 +396,23 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
                         A_domina.append(recurso)
                 if len(A_domina)==len(etiquetaA.label_visitas)+ len(etiquetaA.label_recursos):
                     print('PARECE QUE A DOMINA A B')
+                    print('label_new domina a label_old')
+                    
+                    return 1
 
             else:
                 # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
                 # visita de B que es menor que la correspondiente etiqueta de A.
                 print('A NO DOMINA A B Y B NO DOMINA A A')
+                print('ninguno entre labelnew y labelold domina')
+                
+                return 0
 
         elif etiquetaA.conteo > etiquetaB.conteo:
             print('A NO DOMINA A B Y B NO DOMINA A A')
+            print('ninguno entre labelnew y labelold domina')
+                
+            return 0
 
     elif etiquetaB.costo_acumulado < etiquetaA.costo_acumulado:
         # A no puede dominar a B, nos preguntamos si B domina a A:
@@ -421,14 +434,21 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
                         B_domina.append(recurso)
                 if len(B_domina)==len(etiquetaB.label_visitas)+ len(etiquetaB.label_recursos):
                     print('PARECE QUE B DOMINA A A')
+                    print('label old domina a label new')
+                    return -1
 
             else:
                 # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
                 # visita de A que es menor que la correspondiente etiqueta de B.
                 print('B NO DOMINA A A Y A NO DOMINA A B')
+                print('ninguno entre labelnew y labelold domina')
+                return 0
+
 
         elif etiquetaB.conteo > etiquetaA.conteo:
             print('A NO DOMINA A B Y B NO DOMINA A A')
+            print('ninguno entre labelnew y labelold domina')
+            return 0
 
     else:
         # los costos acumulados de A y B son iguales
@@ -450,10 +470,15 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
                     print('PARECE QUE A DOMINA A B')
+                    print('label_new domina a label_old')
+                    
+                    return 1
             else:
                 # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
                 # visita de B que es menor que la correspondiente etiqueta de A.
                 print('A NO DOMINA A B Y B NO DOMINA A A')
+                print('ninguno entre labelnew y labelold domina')
+                return 0
 
         elif etiquetaB.conteo < etiquetaA.conteo:
             # nos preguntamos si B domina a A
@@ -472,10 +497,17 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
                     print('PARECE QUE B DOMINA A A')
+                    print('label old domina a label new')
+                    return -1
+
             else:
                 # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
                 # visita de A que es menor que la correspondiente etiqueta de B.
                 print('A NO DOMINA A B Y B NO DOMINA A A')
+                print('ninguno entre labelnew y labelold domina')
+                
+                return 0
+
         else:
             #los conteos de A y B son iguales. # miramos en cuantas A domina a B, en cuantas B domina a A
             # y en cuantas son iguales.
@@ -490,16 +522,122 @@ def comparacion_etiqueta_par(etiquetaA,etiquetaB):
             # que domine a B, entonces A domina a B
             if len(B_domina)==0 and len(A_domina)>0:
                 print('A DOMINA A B')
+                print('label_new domina a label_old')
+                    
+                return 1
+            
+            
             elif len(A_domina) ==0 and len(B_domina)>0:
                 print('B DOMINA A A')
+                print('label old domina a label new')
+                return -1
+
+
             elif len(A_domina)==0 and len(B_domina)==0:
                 print('A ES IDENTICO A B')
+                return 2
+
+
+
             else:
                 print('A NO DOMINA A B Y B NO DOMINA A A')
+                print('ninguno entre labelnew y labelold domina')
+                
+                return 0
 
 
 
-def EFF_function_feillet2004(A):
+def EFF_function_feillet2004(delta_set:set(),just_extended:set()):
+    # Esta función recibe dos conjuntos de etiquetas:
+    # delta_set: es el conjunto de etiquetas asociado a cierto nodo j. La invariante de delta_set es un conjunto de Pareto.
+    # just_extended: es el conjunto de etiquetas que recien se obtuvieron como extensión de las etiquetas
+    # de cierto nodo i al nodo j (F_{ij}) en la notación del artículo de Feillet.
+
+    # Esta función corresponde al procedimiento denotado como EFF(Delta) en el artículo de Feillet2004: 
+    # Procedimiento que mantiene sólo etiquetas no dominadas (preserva el frente de Pareto). 
+    
+    # Itera sobre just_extended y delta_set . Desarmamos el conjunto delta_set actual, para volverlo a armar :)
+    
+    
+    condicion_nodominado = dict()
+    while just_extended:
+        label_new =just_extended.pop()
+        # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
+        condicion_nodominado[label_new] =1
+
+        # antes de iniciar la actualización, todas las etiquetas en delta_set (pareto set) tienen la característica
+        # de ser no dominadas (marcadas como 0)
+        #control_cambios = dict()
+        for label_old in delta_set:
+            condicion_nodominado[label_old] = 1
+            #control_cambios[label_old] =0
+        
+        
+        
+        
+        
+        while delta_set:
+            label_old = delta_set.pop()
+            msj=comparacion_etiqueta_par(label_new,label_old)
+
+            # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
+            
+
+            if msj ==2: 
+                #ind_change_front=0
+                break
+            
+            # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
+            # en el frente de pareto delta_set.
+            elif msj ==-1:
+                condicion_nodominado[label_new]=0
+                break
+            
+            
+            # si label_new < (domina a ) label_old, label_old sale del conjunto delta_set y label_new entra a 
+            # delta_set (por la condición invariante no es posible que lo domine otro elemento en delta_set). 
+            # PERO PILAS, es posible que label_new domine también a OTROS ELEMENTOS PRESENTES en delta_set
+            # Se registra cambio en el frente de pareto delta_set. 
+
+            elif msj == 1:
+                #ind_change_front=1
+                condicion_nodominado[label_old]=0
+                continue
+
+            # si label old (NO DOMINA A) label new y label_new (NO DOMINA A) label old.  Label_old no sale, pero 
+            # aun es posible que label_new domine a otro elemento actual en el frente de pareto delta_set. Por tanto continua
+            #la comparación
+
+            elif msj ==0:
+                continue
+        # Cuando termine este ciclo while es porque todos los elementos del conjunto delta_set actual fueron comparados
+        # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios respecto
+        # al anterior.
+
+        new_delta_set={label for label in delta_set.union(label_new) if condicion_nodominado[label]==1}
+        s=0
+        for label in delta_set:
+            s += condicion_nodominado[label]-1
+        if s !=0 or condicion_nodominado[label_new]==1:
+            
+
+
+
+
+
+    return ind_change_front
+
+
+
+
+
+            
+
+
+
+    
+    return 
+
 
 
 
@@ -521,6 +659,7 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
     Delta[s].add(Label_feillet2004(nodo_rel=s,name_recursos=nombres_recursos,nodos=vertices))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
+    # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
     F=dict()
 
     # Conjunto de nodos esperando a ser tratados. No se especifica cuál es la estructura adecuada,
@@ -535,9 +674,12 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
             F[(actual,sucesor)] =set()
             for etiqueta in Delta[actual]:
                 if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
-                    F[(actual, sucesor)].add(Extend_function_feillet2004(etiqueta,sucesor))
-            A=Delta[sucesor].union(F[(actual, sucesor)])
-            eff,indicador_change = EFF_function_feillet2004(A)
+                    new_label =Extend_function_feillet2004(etiqueta,sucesor)
+                    F[(actual, sucesor)].add(new_label)
+            #A=Delta[sucesor].union(F[(actual, sucesor)])
+            
+            eff,indicador_change =\
+                 EFF_function_feillet2004(delta_set=Delta[sucesor],just_extended=F[(actual,sucesor)])
             if indicador_change ==1:
                 E.appendleft(sucesor)
         E.remove(actual)
