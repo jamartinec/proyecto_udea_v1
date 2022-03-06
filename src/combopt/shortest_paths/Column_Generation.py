@@ -49,6 +49,7 @@ def column_generation(G,depot_init, depot_end, costos, tiempo, ventanas,fleet):
 
 ## Hacer una función que reconstruya la solución, es decir, encuentre las variables no nulas y retorne
 # el camino al cual corresponde.
+# 
 
 
 

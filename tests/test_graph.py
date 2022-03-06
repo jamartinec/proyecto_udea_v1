@@ -136,11 +136,11 @@ def test_graph_consumos_initialization():
     restricciones_nodos ={'tiempo':ventanas_tiempo,'demanda':ventanas_demanda}
 
     mi_grafo_consumos = Grafo_consumos(vertices,
-                                       arcos,
-                                       directed=True,
-                                       recursos_nodos=recursos_nodos,
-                                       recursos_arcos=recursos_arcos,
-                                       restricciones_nodos=restricciones_nodos)
+                                        arcos,
+                                        directed=True,
+                                        recursos_nodos=recursos_nodos,
+                                        recursos_arcos=recursos_arcos,
+                                        restricciones_nodos=restricciones_nodos)
     print('nodo recursos:\n ',mi_grafo_consumos.nodo_recursos())
     print('nodo ventanas: \n ', mi_grafo_consumos.nodo_ventanas())
     print('arco recursos:\n ', mi_grafo_consumos.arco_recursos())

@@ -13,7 +13,7 @@ import heapq
 import bisect
 
 from pqdict import pqdict
-from blist import sortedset
+#from blist import sortedset
 
 from src.combopt.graph import Grafo
 #from src.combopt.shortest_paths.pareto_frontier_structure import Label
