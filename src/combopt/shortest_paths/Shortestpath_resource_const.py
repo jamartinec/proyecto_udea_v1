@@ -558,7 +558,7 @@ def EFF_function_feillet2004(delta_set:set(),just_extended:set()):
     
     # Itera sobre just_extended y delta_set . Desarmamos el conjunto delta_set actual, para volverlo a armar :)
     
-    
+    ind_change_front=0
     condicion_nodominado = dict()
     while just_extended:
         label_new =just_extended.pop()
@@ -618,26 +618,13 @@ def EFF_function_feillet2004(delta_set:set(),just_extended:set()):
         s=0
         for label in delta_set:
             s += condicion_nodominado[label]-1
+        # si el frente de pareto (delta set) cambió
         if s !=0 or condicion_nodominado[label_new]==1:
-            
+            ind_change_front+=1
+            delta_set=new_delta_set
 
 
-
-
-
-    return ind_change_front
-
-
-
-
-
-            
-
-
-
-    
-    return 
-
+    return ind_change_front, delta_set
 
 
 
@@ -676,11 +663,13 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
                 if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
                     new_label =Extend_function_feillet2004(etiqueta,sucesor)
                     F[(actual, sucesor)].add(new_label)
-            #A=Delta[sucesor].union(F[(actual, sucesor)])
             
-            eff,indicador_change =\
+            
+            # conteo de cambios (indicador) en el frente de pareto de Delta[sucesor], y el frente actualizado
+            ind_change_front, Delta[sucesor]=\
                  EFF_function_feillet2004(delta_set=Delta[sucesor],just_extended=F[(actual,sucesor)])
-            if indicador_change ==1:
+            
+            if ind_change_front >1:
                 E.appendleft(sucesor)
         E.remove(actual)
 
