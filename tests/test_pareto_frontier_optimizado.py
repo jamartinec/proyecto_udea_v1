@@ -43,10 +43,29 @@ def test_Label_feillet2004():
     vertices = [0, 1, 2, 3, 4]
     nombres_recursos=['tiempo', 'demanda']
     etiqueta = Label_feillet2004(nodo_rel=0,name_recursos=nombres_recursos,nodos=vertices)
-    print('etiqueta: \n', etiqueta.label)
-    print('etiqueta_recursos: \n', etiqueta.label_recursos)
-    print('etiqueta_visitas: \n', etiqueta.label_visitas)
-    print('nodo_rel: \n', etiqueta.nodo_rel)
+
+    assert etiqueta.label_recursos == {'tiempo' : 0, 'demanda': 0}
+
+    assert etiqueta.label_visitas == {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+    assert etiqueta.label == {'tiempo': 0, 'demanda': 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+    assert etiqueta.nodo_rel == 0
+
+    assert etiqueta.longitud == 9
+
+    etiqueta.update_nodo_rel(2)
+    assert etiqueta.nodo_rel == 2
+
+    etiqueta.update_label_recursos({'demanda': 1, 'tiempo': 2})
+    assert etiqueta.label_recursos['demanda'] == 1
+    assert etiqueta.label_recursos['tiempo'] == 2
+    assert etiqueta.label['tiempo'] == 2
+
+    etiqueta.update_label_visitas([1,2])
+    assert etiqueta.label_visitas[2] ==1
+    assert etiqueta.label[1] == 1
+    assert etiqueta.conteo == 2
 
 
 

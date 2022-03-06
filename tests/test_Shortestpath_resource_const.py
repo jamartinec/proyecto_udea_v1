@@ -4,9 +4,9 @@ from pytest import raises
 from sortedcontainers import SortedList
 
 from src.combopt.shortest_paths import Pareto_Frontier
-from src.combopt.graph import Grafo
+from src.combopt.graph import Grafo, Grafo_consumos
 from src.combopt.shortest_paths import spptw_desrochers1988_imp_fullpareto, \
-    retrieve_path, retrieve_paths_inpareto, slave_function
+    retrieve_path, retrieve_paths_inpareto, slave_function, verificar_recursos, Extend_function_feillet2004, Label_feillet2004
 
 
 my_graph2 = Grafo([0,1,2,3,4],[(0,1),(0,2),(0,3),(1,4),(2,4),(3,4)],directed=True)
@@ -41,4 +41,15 @@ def test_slave_functions():
     assert Dictio_Paths == {(12,10):[0,1,4], (11,11):[0,2,4] } and \
            Dictio_Paths_set == {(12,10): {0,1,4}, (11,11):{0,2,4}} and \
            Dictio_inner =={(12,10):[1], (11,11):[2]}
+
+def test_verificar_recursos():
+    return
+
+
+def test_Extended_function_feillet2004():
+    # Crear una etiqueta (instancia de la clase Label_feillet)
+    ertices = [0, 1, 2, 3, 4]
+    nombres_recursos = ['tiempo', 'demanda']
+    etiqueta = Label_feillet2004(nodo_rel=0, name_recursos=nombres_recursos, nodos=vertices)
+
 

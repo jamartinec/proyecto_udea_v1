@@ -194,19 +194,21 @@ class Label_feillet2004():
     '''
     clase para representar etiquetas en el algoritmo de feillet2004
     '''
-    def __init__(self,nodo_rel,name_recursos,nodos):
+    def __init__(self, nodo_rel: object, name_recursos: list, nodos: list):
         # supongamos que pasamos una lista name_recursos con los nombres de
         # los recursos.
 
-        self.label_recursos= dict({nombre:0 for nombre in name_recursos})
-        self.label_visitas = dict({nodo:0 for nodo in nodos})
+        self.label_recursos= {nombre: 0 for nombre in name_recursos}
+        self.label_visitas = {nodo: 0 for nodo in nodos}
 
         self.conteo = 0
 
         self.costo_acumulado = 0
 
-        self.label = self.label_recursos.update(self.label_visitas)
+        #self.label = self.label_recursos.update(self.label_visitas)
+        self.label = {**self.label_recursos, **self.label_visitas}
 
+        # nodo relacionado
         self.nodo_rel = nodo_rel
 
         self.longitud = len(self.label) + 2
@@ -215,17 +217,20 @@ class Label_feillet2004():
 
         # considerar un método que permita imprimir las etiquetas en
         # determinado orden.
-    def update_nodo_rel(self,nodo):
+    def update_nodo_rel(self, nodo):
         self.nodo_rel=nodo
 
-    def update_label_recursos(self,valores_recursos:dict):
-        for (recurso,valor) in valores_recursos.items():
+    def update_label_recursos(self, valores_recursos:dict):
+        for (recurso, valor) in valores_recursos.items():
             self.label_recursos[recurso]=valor
+            self.label[recurso]=valor
 
-    def update_label_visitas(self,nodos_list:list):
+    def update_label_visitas(self, nodos_list:list):
         for nodo in nodos_list:
             self.label_visitas[nodo]=1
+            self.label[nodo] =1
             self.conteo +=1
+
 
     def update_recursos_sucesores(self,dict_sucesores:dict):
         # pilas, no todos los sucesores del nodo de referencia (para la etiqueta) que aparecen en la

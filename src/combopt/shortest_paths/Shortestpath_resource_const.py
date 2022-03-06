@@ -628,7 +628,7 @@ def EFF_function_feillet2004(delta_set:set(),just_extended:set()):
 
 
 
-def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,output_type=True):
+def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list,costo,output_type=True):
     # a partir del grafo dado y los recursos necesito crear una estructura
     # para las etiquetas. De pronto conviene crear una clase, porque las etiquetas
     # guardan información pero no están cambiando de dimensiones.
@@ -640,10 +640,10 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
     vertices =G.vertices
 
     # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
-    Delta = dict({vertice: set() for vertice in vertices})
+    Delta = {vertice: set() for vertice in vertices}
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
 
-    Delta[s].add(Label_feillet2004(nodo_rel=s,name_recursos=nombres_recursos,nodos=vertices))
+    Delta[s].add(Label_feillet2004(nodo_rel=s, name_recursos=nombres_recursos, nodos=vertices))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
     # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
@@ -658,10 +658,10 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
     while E:
         actual = E.pop()
         for sucesor in G.succesors(actual):
-            F[(actual,sucesor)] =set()
+            F[(actual,sucesor)] = set()
             for etiqueta in Delta[actual]:
                 if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
-                    new_label =Extend_function_feillet2004(etiqueta,sucesor)
+                    new_label = Extend_function_feillet2004(etiqueta, sucesor)
                     F[(actual, sucesor)].add(new_label)
             
             
@@ -672,12 +672,4 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list ,costo,out
             if ind_change_front >1:
                 E.appendleft(sucesor)
         E.remove(actual)
-
-
-
-
-
-    # para el vertice i la lista dictio[i] contiene las etiquetas ??
-    # debemos recordar cómo está definida una etiqueta en este caso.
-    
 

@@ -18,7 +18,7 @@ class Grafo_consumos():
 
     """
 
-    def __init__(self, vertices, aristas, directed=False, recursos_nodos=None, recursos_arcos=None ,restricciones_nodos=None):
+    def __init__(self, vertices, aristas, directed=False, recursos_nodos=None, recursos_arcos=None ,restricciones_nodos=None,costos_arcos=None):
         """Inits Grafo class"""
 
         self.vertices = vertices
@@ -58,9 +58,15 @@ class Grafo_consumos():
         # recursos_arcos y ventanas_nodos!!
 
         # Inicializacion de la estructura de datos _info_aristas
-        self._info_aristas = {(v, w): dict() for v, w in aristas}
+        self._info_aristas = {(v, w): dict() for v, w in vertices}
         if not self.directed:
-            self._info_aristas.update({(w, v): dict() for v, w in aristas})
+            self._info_aristas.update({(w, v): dict() for v, w in vertices})
+
+        # Inicialización de la estructura de datos costos_acos
+        if self.directed:
+            self.costos_arcos = costos_arcos
+
+
 
         # inicialización de la estructura de datos nodo-recursos
         self._dictio_nodo_recursos = dict()
