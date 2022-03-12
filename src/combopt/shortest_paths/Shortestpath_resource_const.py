@@ -304,29 +304,46 @@ def slave_function(G,source,sink,time,costo,ventana):
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
 
-def verificar_recursos(actual, sucesor):
+def verificar_recursos(actual, sucesor,label_recursos, nodo_recursos, arco_recursos,nodo_ventanas):
 
     arco = (actual, sucesor)
     indicador = True
     nuevos_valores = dict()
-    for recurso in etiqueta.label_recursos.keys():
-        cantidad = etiqueta.label_recursos[recurso] + G.nodo_recursos()[sucesor][recurso] + \
-                   G.arco_recursos()[arco][recurso]
+    for recurso in label_recursos.keys():
+        cantidad = label_recursos[recurso] + nodo_recursos[sucesor][recurso] + \
+                   arco_recursos[arco][recurso]
         nuevos_valores[recurso] = cantidad
-        if cantidad > G.nodo_ventanas()[sucesor][recurso][1]:
-            indicador=False
+
+        # Pilas, qué pasa si la cantidad es menor que la ventana izquierda
+
+        if cantidad > nodo_ventanas[sucesor][recurso][1]:
+            indicador = False
             break
     return indicador, nuevos_valores
 
 
-def Extend_function_feillet2004(etiqueta,nodo):
+def Extend_function_feillet2004(G,etiqueta,nodo):
     # esta función primero debe verificar si es posible extender la etiqueta al nodo dado, para
     #formar una nueva etiqueta
     nodo_partida = etiqueta.nodo_rel
     # Yo creo que esto no es necesario, porque si no se cumpliera el nodo estaría marcado como inalcanzable
     # desde el principio.
-    indicador, nuevos_valores = verificar_recursos(nodo_partida,nodo)
+
+    # ¿Es necesario traerme los diccionarios completos?
+    # Yo creo que no!, mirar cómo está label recursos y mejor pasar la etiqueta completa
+
+    label_recursos = etiqueta.label_recursos
+    nodo_recursos = G.nodo_recursos()
+    arco_recursos = G.arco_recursos()
+    nodo_ventanas = G.nodo_ventanas()
+
+
+    indicador, nuevos_valores = verificar_recursos(nodo_partida,nodo, label_recursos,
+                                                   nodo_recursos, arco_recursos,nodo_ventanas)
+
+    # Si el indicador es Falso marcar como nodo inalcanzable
     if indicador == False:
+        # Esta actualización de visita se origina tras identificar a nodo como inalcanzable
         etiqueta.update_label_visitas([nodo])
         return indicador, etiqueta
 
@@ -336,7 +353,12 @@ def Extend_function_feillet2004(etiqueta,nodo):
         new_etiqueta = deepcopy(etiqueta)
         new_etiqueta.update_nodo_rel(nodo)
         new_etiqueta.update_label_visitas([nodo])
+        ##############################################################################
+        #  Esta actualización de visita se origina trás visitar a un nodo en el
+        #  camino representado por la etiqueta. Debemos por tanto, actualizar el costo
         new_etiqueta.update_label_recursos(nuevos_valores)
+        new_etiqueta.update_cost(G.costos_arcos[(nodo_partida,nodo)])
+        ##############################################################################
         # Es necesario explorar los vecinos de "nodo" para determinar si alguno de ellos es
         # inalcanzable. Esto quiere decir que inspecciono para cada uno de ellos, si
 
@@ -547,7 +569,7 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
 
 
 
-def EFF_function_feillet2004(delta_set:set(),just_extended:set()):
+def EFF_function_feillet2004(delta_set:set,just_extended:set):
     # Esta función recibe dos conjuntos de etiquetas:
     # delta_set: es el conjunto de etiquetas asociado a cierto nodo j. La invariante de delta_set es un conjunto de Pareto.
     # just_extended: es el conjunto de etiquetas que recien se obtuvieron como extensión de las etiquetas

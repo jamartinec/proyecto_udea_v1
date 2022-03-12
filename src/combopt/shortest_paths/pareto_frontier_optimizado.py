@@ -198,6 +198,9 @@ class Label_feillet2004():
         # supongamos que pasamos una lista name_recursos con los nombres de
         # los recursos.
 
+        # es necessario la siguiente línea?
+        self.lista_recursos = name_recursos
+
         self.label_recursos= {nombre: 0 for nombre in name_recursos}
         self.label_visitas = {nodo: 0 for nodo in nodos}
 
@@ -221,15 +224,18 @@ class Label_feillet2004():
         self.nodo_rel=nodo
 
     def update_label_recursos(self, valores_recursos:dict):
+        # Deberíamos garantizar que el recurso que intento actualizar sea en
+        # efecto un recurso de los especificados en la creación de la etiqueta (self.lista_recursos)?
+
         for (recurso, valor) in valores_recursos.items():
-            self.label_recursos[recurso]=valor
-            self.label[recurso]=valor
+            self.label_recursos[recurso] = valor
+            self.label[recurso] = valor
 
     def update_label_visitas(self, nodos_list:list):
         for nodo in nodos_list:
-            self.label_visitas[nodo]=1
-            self.label[nodo] =1
-            self.conteo +=1
+            self.label_visitas[nodo] = 1
+            self.label[nodo] = 1
+            self.conteo += 1
 
 
     def update_recursos_sucesores(self,dict_sucesores:dict):
@@ -238,8 +244,8 @@ class Label_feillet2004():
         # ser extendidos.
         self.dict_sucesores = dict_sucesores
 
-    def update_costo(self,costo_nodo):
-        self.costo_acumulado += costo_nodo
+    def update_cost(self,costo_arco):
+        self.costo_acumulado += costo_arco
 
 
 

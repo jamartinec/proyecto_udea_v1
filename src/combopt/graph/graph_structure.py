@@ -62,9 +62,20 @@ class Grafo_consumos():
         if not self.directed:
             self._info_aristas.update({(w, v): dict() for v, w in vertices})
 
-        # Inicialización de la estructura de datos costos_acos
+        # Inicialización de la estructura de datos costos_arcos
         if self.directed:
-            self.costos_arcos = costos_arcos
+            self._costos_arcos = costos_arcos
+            # si un arco especificado en costos_arcos no es arista (arco) del grafo
+            # se elimina
+            for arco in self._costos_arcos.keys():
+                if arco not in self.aristas:
+                    del self._costos_arcos[arco]
+            # si a una arista (arco) del grafo no se le especificó su costo,
+            # entonces se agrega como cero. (todo arco del grafo debe tener costo)
+            for arco in self.aristas:
+                if arco not in self._costos_arcos.keys():
+                    self._costos_arcos[arco] = 0
+
 
 
 
@@ -241,6 +252,10 @@ class Grafo_consumos():
 
     def nombres_recursos(self):
         return self._recursos_names
+
+    def costos_arcos(self,arco):
+        return self._costos_arcos[arco]
+
 
 
     def __str__(self):
