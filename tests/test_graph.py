@@ -167,3 +167,37 @@ def test_graph_consumos_initialization():
 
 
     assert {'tiempo','demanda'} == set(mi_grafo_consumos.nombres_recursos())
+
+
+    return None
+
+def test_graph_consumos_initialization2():
+
+    vertices=[1, 2, 3, 4]
+    arcos = [(1,2),(1,3),(2,3),(3,2),(2,4),(3,4)]
+    tiempo_nodos ={v:0 for v in vertices} # no hay tiempo de espera en los nodos
+    demanda_nodos={v:1 for v in vertices} # supongamos demanda unitaria
+    tiempo_arcos = {(1,2): 2, (1,3):2, (2,3):1, (3,2):1, (2,4):2, (3,4):2}
+    demanda_arcos ={a:0 for a in arcos} # no hay demanda en los arcos, sólo en los nodos
+    ventanas_tiempo = {1:[0,10],2:[0,10],3:[0,10],4:[0,10],}
+    ventanas_demanda ={v:5 for v in vertices}
+    #costos_arcos = {arco: 1 for arco in arcos}
+
+
+    # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
+    costos_arcos  = {(1,2): 2, (1,3):2, (2,3):1, (3,2):1, (2,4):2, (3,4):2}
+
+    recursos_nodos={'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
+    recursos_arcos={'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
+    restricciones_nodos ={'tiempo':ventanas_tiempo,'demanda':ventanas_demanda}
+
+    mi_grafo_consumos = Grafo_consumos(vertices,
+                                        arcos,
+                                        directed=True,
+                                        recursos_nodos=recursos_nodos,
+                                        recursos_arcos=recursos_arcos,
+                                        restricciones_nodos=restricciones_nodos,
+                                        costos_arcos=costos_arcos)
+
+
+    

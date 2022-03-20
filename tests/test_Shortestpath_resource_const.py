@@ -43,13 +43,95 @@ def test_slave_functions():
            Dictio_inner =={(12,10):[1], (11,11):[2]}
 
 def test_verificar_recursos():
-    return
+
+    # Verificar recursos recibe grafo G y etiqueta.
+    # Crear un grafo de la clase grafo recursos:
+    vertices = [1, 2, 3, 4]
+    arcos = [(1, 2), (1, 3), (2, 3), (3, 2), (2, 4), (3, 4)]
+    tiempo_nodos = {v: 0 for v in vertices}  # no hay tiempo de espera en los nodos
+    demanda_nodos = {v: 1 for v in vertices}  # supongamos demanda unitaria
+    tiempo_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+    demanda_arcos = {a: 0 for a in arcos}  # no hay demanda en los arcos, sólo en los nodos
+    ventanas_tiempo = {1: [0, 10], 2: [0, 10], 3: [0, 10], 4: [0, 10], }
+    ventanas_demanda = {v: [0,5] for v in vertices}
+    # costos_arcos = {arco: 1 for arco in arcos}
+
+    # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
+    costos_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+
+    recursos_nodos = {'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
+    recursos_arcos = {'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
+    restricciones_nodos = {'tiempo': ventanas_tiempo, 'demanda': ventanas_demanda}
+
+    mi_grafo_consumos = Grafo_consumos(vertices,
+                                       arcos,
+                                       directed=True,
+                                       recursos_nodos=recursos_nodos,
+                                       recursos_arcos=recursos_arcos,
+                                       restricciones_nodos=restricciones_nodos,
+                                       costos_arcos=costos_arcos)
+    # Crear una etiqueta
+
+    nombres_recursos = ['tiempo', 'demanda']
+    etiqueta = Label_feillet2004(nodo_rel=1, name_recursos=nombres_recursos, nodos=vertices)
+
+    assert etiqueta.visited_nodes() == {1}
+    assert etiqueta.is_visited_node(1) == 1
+    assert etiqueta.is_visited_node(2) == 0
+    assert etiqueta.costo_acumulado == 0
+
+    indicador, nuevos_valores = verificar_recursos(actual=1, sucesor=2, etiqueta=etiqueta, G=mi_grafo_consumos)
+
+    assert indicador == True
+    assert nuevos_valores['tiempo']==2
+    assert nuevos_valores['demanda'] ==2
 
 
 def test_Extended_function_feillet2004():
-    # Crear una etiqueta (instancia de la clase Label_feillet)
-    ertices = [0, 1, 2, 3, 4]
+    # Verificar recursos recibe grafo G y etiqueta.
+    # Crear un grafo de la clase grafo recursos:
+    vertices = [1, 2, 3, 4]
+    arcos = [(1, 2), (1, 3), (2, 3), (3, 2), (2, 4), (3, 4)]
+    tiempo_nodos = {v: 0 for v in vertices}  # no hay tiempo de espera en los nodos
+    demanda_nodos = {v: 1 for v in vertices}  # supongamos demanda unitaria
+    tiempo_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+    demanda_arcos = {a: 0 for a in arcos}  # no hay demanda en los arcos, sólo en los nodos
+    ventanas_tiempo = {1: [0, 10], 2: [0, 10], 3: [0, 10], 4: [0, 10], }
+    ventanas_demanda = {v: [0, 5] for v in vertices}
+    # costos_arcos = {arco: 1 for arco in arcos}
+
+    # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
+    costos_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+
+    recursos_nodos = {'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
+    recursos_arcos = {'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
+    restricciones_nodos = {'tiempo': ventanas_tiempo, 'demanda': ventanas_demanda}
+
+    mi_grafo_consumos = Grafo_consumos(vertices,
+                                       arcos,
+                                       directed=True,
+                                       recursos_nodos=recursos_nodos,
+                                       recursos_arcos=recursos_arcos,
+                                       restricciones_nodos=restricciones_nodos,
+                                       costos_arcos=costos_arcos)
+    # Crear una etiqueta
+
     nombres_recursos = ['tiempo', 'demanda']
-    etiqueta = Label_feillet2004(nodo_rel=0, name_recursos=nombres_recursos, nodos=vertices)
+    etiqueta = Label_feillet2004(nodo_rel=1, name_recursos=nombres_recursos, nodos=vertices)
+
+    new_etiqueta = Extend_function_feillet2004(mi_grafo_consumos,etiqueta,2)
+    assert new_etiqueta.nodo_rel == 2
+    assert new_etiqueta.visited_nodes() == {1,2}
+    assert new_etiqueta.costo_acumulado == 2
+
+    new_etiqueta3 = Extend_function_feillet2004(mi_grafo_consumos, etiqueta, 3)
+    assert new_etiqueta3.nodo_rel == 3
+    assert new_etiqueta3.visited_nodes() == {1, 3}
+    assert new_etiqueta3.costo_acumulado == 2
+    assert new_etiqueta3.label == {'tiempo':2}
+    print('etiqueta new_etiqueta3:')
+    print(new_etiqueta3.label)
+
+
 
 

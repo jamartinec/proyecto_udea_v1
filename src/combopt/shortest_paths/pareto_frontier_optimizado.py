@@ -198,11 +198,20 @@ class Label_feillet2004():
         # supongamos que pasamos una lista name_recursos con los nombres de
         # los recursos.
 
+        # lista de nodos con la cual se inicializa la etiqueta (debería ser la lista de nodos del grafo G)
+        self.nodos = nodos
+
         # es necessario la siguiente línea?
         self.lista_recursos = name_recursos
 
         self.label_recursos= {nombre: 0 for nombre in name_recursos}
-        self.label_visitas = {nodo: 0 for nodo in nodos}
+        for nombre in name_recursos:
+            self.label_recursos[nombre] +=
+
+
+        self.label_visitas = {nodo: 0 for nodo in self.nodos}
+        # el nodo relacionado con la etiqueta debe estar marcado como visitado
+        self.label_visitas[nodo_rel]=1
 
         self.conteo = 0
 
@@ -218,8 +227,18 @@ class Label_feillet2004():
 
 
 
-        # considerar un método que permita imprimir las etiquetas en
-        # determinado orden.
+    # considerar un método que permita imprimir las etiquetas en
+    # determinado orden.
+    def visited_nodes(self):
+        visited = {x for x in self.label_visitas.keys() if self.label_visitas[x] == 1}
+        return visited
+
+    def is_visited_node(self,nodo):
+        try:
+            return self.label_visitas[nodo]
+        except:
+            print('no es un nodo en la lista de inicialización de la etiqueta')
+
     def update_nodo_rel(self, nodo):
         self.nodo_rel=nodo
 

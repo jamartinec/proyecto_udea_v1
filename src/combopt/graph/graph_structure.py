@@ -58,9 +58,9 @@ class Grafo_consumos():
         # recursos_arcos y ventanas_nodos!!
 
         # Inicializacion de la estructura de datos _info_aristas
-        self._info_aristas = {(v, w): dict() for v, w in vertices}
+        self._info_aristas = {(v, w): dict() for v, w in aristas}
         if not self.directed:
-            self._info_aristas.update({(w, v): dict() for v, w in vertices})
+            self._info_aristas.update({(w, v): dict() for v, w in aristas})
 
         # Inicialización de la estructura de datos costos_arcos
         if self.directed:
