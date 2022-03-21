@@ -304,14 +304,13 @@ def slave_function(G,source,sink,time,costo,ventana):
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
 
-def verificar_recursos(actual, sucesor, etiqueta,G):
+# la siguiente función la llevé a pareto frontier optimizato (como método de la clase label feillet)
+'''def verificar_recursos(actual, sucesor, etiqueta,G):
 
     arco = (actual, sucesor)
     label_recursos = etiqueta.label_recursos
-    print('label_recursos: ',label_recursos)
 
     nodo_recursos = G.nodo_recursos()
-
     arco_recursos = G.arco_recursos()
     nodo_ventanas = G.nodo_ventanas()
 
@@ -319,8 +318,7 @@ def verificar_recursos(actual, sucesor, etiqueta,G):
     nuevos_valores = dict()
     for recurso in label_recursos.keys():
         print('recurso: ',recurso)
-        cantidad = label_recursos[recurso] + nodo_recursos[sucesor][recurso] + \
-                   arco_recursos[arco][recurso]
+        cantidad = label_recursos[recurso] + nodo_recursos[sucesor][recurso] + arco_recursos[arco][recurso]
         print('cantidad: ',cantidad)
         nuevos_valores[recurso] = cantidad
 
@@ -330,19 +328,17 @@ def verificar_recursos(actual, sucesor, etiqueta,G):
             indicador = False
             break
     return indicador, nuevos_valores
+'''
 
 
 def Extend_function_feillet2004(G,etiqueta,nodo):
     # esta función primero debe verificar si es posible extender la etiqueta al nodo dado, para
     #formar una nueva etiqueta
-    nodo_partida = etiqueta.nodo_rel
     # Yo creo que esto no es necesario, porque si no se cumpliera el nodo estaría marcado como inalcanzable
     # desde el principio.
 
-    # ¿Es necesario traerme los diccionarios completos?
-    # Yo creo que no!, mirar cómo está label recursos y mejor pasar la etiqueta completa
-
-    indicador, nuevos_valores = verificar_recursos(nodo_partida,nodo, etiqueta,G)
+    #indicador, nuevos_valores = verificar_recursos(nodo_partida, nodo, etiqueta, G)
+    indicador, nuevos_valores = etiqueta.verificar_recursos(sucesor=nodo)
 
     # Si el indicador es Falso marcar como nodo inalcanzable
     if indicador == False:
@@ -353,14 +349,20 @@ def Extend_function_feillet2004(G,etiqueta,nodo):
     else:
         # si se satisfacen las restricciones de capacidad, lo que sigue es crear una nueva etiqueta
         # cuyo nodo de referencia sea "nodo". Para ello copiamos la etiqueta actual.
-        new_etiqueta = deepcopy(etiqueta)
-        new_etiqueta.update_nodo_rel(nodo)
-        new_etiqueta.update_label_visitas([nodo])
-        ##############################################################################
+        ###################################################################
+        #new_etiqueta = deepcopy(etiqueta)
+        #new_etiqueta.update_nodo_rel(nodo)
+        #new_etiqueta.update_label_visitas([nodo])
+
         #  Esta actualización de visita se origina trás visitar a un nodo en el
         #  camino representado por la etiqueta. Debemos por tanto, actualizar el costo
-        new_etiqueta.update_label_recursos(nuevos_valores)
-        new_etiqueta.update_cost(G.costos_arcos((nodo_partida,nodo)))
+        #new_etiqueta.update_label_recursos(nuevos_valores)
+        #new_etiqueta.update_cost(G.costos_arcos((nodo_partida,nodo)))
+        ##############################################################################
+        new_etiqueta = etiqueta.extend_label(nodo, nuevos_valores)
+
+
+
         ##############################################################################
         # Es necesario explorar los vecinos de "nodo" para determinar si alguno de ellos es
         # inalcanzable. Esto quiere decir que inspecciono para cada uno de ellos, si
@@ -373,11 +375,12 @@ def Extend_function_feillet2004(G,etiqueta,nodo):
 
         recursos_sucesores =dict()
         for sucesor in G.succesors(new_etiqueta.nodo_rel):
-            indicador, nuevos_valores = verificar_recursos(new_etiqueta.nodo_rel,sucesor,new_etiqueta,G)
+            #indicador, nuevos_valores = verificar_recursos(new_etiqueta.nodo_rel,sucesor,new_etiqueta,G)
+            indicador, nuevos_valores = new_etiqueta.verificar_recursos(sucesor=sucesor)
             if indicador == False:
                 new_etiqueta.update_label_visitas([sucesor])
             else:
-                recursos_sucesores[sucesor]=nuevos_valores
+                recursos_sucesores[sucesor] = nuevos_valores
 
         new_etiqueta.update_recursos_sucesores(recursos_sucesores)
         return new_etiqueta

@@ -1,6 +1,7 @@
 # coding: utf8
 
 from sortedcontainers import SortedList
+from copy import deepcopy
 import numpy as np
 
 
@@ -194,35 +195,41 @@ class Label_feillet2004():
     '''
     clase para representar etiquetas en el algoritmo de feillet2004
     '''
-    def __init__(self, nodo_rel: object, name_recursos: list, nodos: list):
-        # supongamos que pasamos una lista name_recursos con los nombres de
-        # los recursos.
 
-        # lista de nodos con la cual se inicializa la etiqueta (debería ser la lista de nodos del grafo G)
-        self.nodos = nodos
+    def __init__(self, nodo_rel: object, G: object):
 
-        # es necessario la siguiente línea?
-        self.lista_recursos = name_recursos
-
-        self.label_recursos= {nombre: 0 for nombre in name_recursos}
-        for nombre in name_recursos:
-            self.label_recursos[nombre] +=
-
-
-        self.label_visitas = {nodo: 0 for nodo in self.nodos}
-        # el nodo relacionado con la etiqueta debe estar marcado como visitado
-        self.label_visitas[nodo_rel]=1
-
-        self.conteo = 0
-
-        self.costo_acumulado = 0
-
-        #self.label = self.label_recursos.update(self.label_visitas)
-        self.label = {**self.label_recursos, **self.label_visitas}
+        self._grafo_consumo_referencia = G
 
         # nodo relacionado
         self.nodo_rel = nodo_rel
 
+        # lista de nodos con la cual se inicializa la etiqueta
+        # (debería ser la lista de nodos del grafo G)
+
+        self.nodos = G.vertices
+
+        self.lista_recursos = G.recursos
+        self.label_recursos= {recurso: 0 for recurso in self.lista_recursos}
+
+        # Cuando se genera una etiqueta el valor de consumo de recursos acumulados debe sumar los
+        # correspondientes al nodo relacionado con la etiqueta (en el cual se inicia)
+
+
+        for recurso  in self.lista_recursos:
+            self.label_recursos[recurso] += G.recurso_nodo(self.nodo_rel)[recurso]
+
+        self.label_visitas = {nodo: 0 for nodo in self.nodos}
+        # el nodo relacionado con la etiqueta debe estar marcado como visitado
+        self.label_visitas[self.nodo_rel] = 1
+
+        self.recursos_sucesores = dict()
+        self.find_unreachable_successors()
+
+        # Nodos visitados, no tiene en cuenta los marcados como 1 por inalcanzables
+        self.conteo = 1
+        self.costo_acumulado = 0
+
+        self.label = {**self.label_recursos, **self.label_visitas}
         self.longitud = len(self.label) + 2
 
 
@@ -266,9 +273,61 @@ class Label_feillet2004():
     def update_cost(self,costo_arco):
         self.costo_acumulado += costo_arco
 
+    def verificar_recursos(self, sucesor):
+        arco = (self.nodo_rel, sucesor)
+        nodo_recursos = self._grafo_consumo_referencia.nodo_recursos()
+        arco_recursos = self._grafo_consumo_referencia.arco_recursos()
+        nodo_ventanas = self._grafo_consumo_referencia.nodo_ventanas()
 
+        indicador = True
+        nuevos_valores = dict()
+        for recurso in self.label_recursos.keys():
+            cantidad = self.label_recursos[recurso] + nodo_recursos[sucesor][recurso] + arco_recursos[arco][recurso]
+            nuevos_valores[recurso] = cantidad
 
+            # Pilas, qué pasa si la cantidad es menor que la ventana izquierda
 
+            if cantidad > nodo_ventanas[sucesor][recurso][1]:
+                indicador = False
+                break
 
+        return indicador, nuevos_valores
 
+    def extend_label(self, nodo, nuevos_valores):
 
+        new_etiqueta = deepcopy(self)
+        new_etiqueta.update_nodo_rel(nodo)
+        new_etiqueta.update_label_visitas([nodo])
+
+        new_etiqueta.update_label_recursos(nuevos_valores)
+        new_etiqueta.update_cost(self._grafo_consumo_referencia.costos_arcos((self.nodo_rel, nodo)))
+
+        # Recien se ha extendido una etiqueta, es necesario explorar los vecinos, marcar los no alcanzables
+        # y actualizar el diccionario de valores para los vecinos.
+
+        # En este punto debemos explorar todos los vecinos de nodo_rel que no venían desde la etiqueta
+        # original o predecesora, marcados como no alcanzables.
+
+        # creo que el diccionario de recursos sucesores debe reiniciarse (pensar bien)
+        return new_etiqueta
+
+    def find_unreachable_successors(self):
+        for sucesor in self._grafo_consumo_referencia.succesors(self.nodo_rel):
+
+            indicador, nuevos_valores = self.verificar_recursos(sucesor=sucesor)
+            if indicador == False:
+                self.update_label_visitas([sucesor])
+            else:
+                self.recursos_sucesores[sucesor] = nuevos_valores
+
+    def extend_function_feillet(self, nodo):
+        if nodo not in self._grafo_consumo_referencia.vertices:
+            raise ValueError(f"extended function method expected a node in " \
+                             f"reference graph, got{nodo}")
+
+        if self.label_visitas[nodo] == 1:
+            raise ValueError('El nodo al cual se desea extender no puede haber sido visitado o'
+                             'marcado como inalcanzable')
+
+        nuevos_valores = self.recursos_sucesores[nodo]
+        new_etiqueta = self.extend_label(nodo, nuevos_valores)

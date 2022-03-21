@@ -88,20 +88,21 @@ def test_verificar_recursos():
 
 
 def test_Extended_function_feillet2004():
+    # basado en el ejemplo consignado en la fig2 del artículo de Feillet2004
     # Verificar recursos recibe grafo G y etiqueta.
     # Crear un grafo de la clase grafo recursos:
-    vertices = [1, 2, 3, 4]
-    arcos = [(1, 2), (1, 3), (2, 3), (3, 2), (2, 4), (3, 4)]
+    vertices = [1, 2, 3, 4, 5]
+    arcos = [(1, 2), (1, 3), (2, 3), (3, 2), (2, 4), (3, 4), (4,5)]
     tiempo_nodos = {v: 0 for v in vertices}  # no hay tiempo de espera en los nodos
     demanda_nodos = {v: 1 for v in vertices}  # supongamos demanda unitaria
-    tiempo_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+    tiempo_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2, (4, 5): 2, }
     demanda_arcos = {a: 0 for a in arcos}  # no hay demanda en los arcos, sólo en los nodos
-    ventanas_tiempo = {1: [0, 10], 2: [0, 10], 3: [0, 10], 4: [0, 10], }
+    ventanas_tiempo = {1: [0, 10], 2: [0, 10], 3: [0, 10], 4: [0, 10], 5: [0, 6], }
     ventanas_demanda = {v: [0, 5] for v in vertices}
     # costos_arcos = {arco: 1 for arco in arcos}
 
     # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
-    costos_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+    costos_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): -2, (3, 2): 1, (2, 4): 2, (3, 4): 2, (4, 5): 2,}
 
     recursos_nodos = {'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
     recursos_arcos = {'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
@@ -115,9 +116,7 @@ def test_Extended_function_feillet2004():
                                        restricciones_nodos=restricciones_nodos,
                                        costos_arcos=costos_arcos)
     # Crear una etiqueta
-
-    nombres_recursos = ['tiempo', 'demanda']
-    etiqueta = Label_feillet2004(nodo_rel=1, name_recursos=nombres_recursos, nodos=vertices)
+    etiqueta = Label_feillet2004(nodo_rel=1, G=mi_grafo_consumos)
 
     new_etiqueta = Extend_function_feillet2004(mi_grafo_consumos,etiqueta,2)
     assert new_etiqueta.nodo_rel == 2
@@ -128,9 +127,32 @@ def test_Extended_function_feillet2004():
     assert new_etiqueta3.nodo_rel == 3
     assert new_etiqueta3.visited_nodes() == {1, 3}
     assert new_etiqueta3.costo_acumulado == 2
-    assert new_etiqueta3.label == {'tiempo':2}
-    print('etiqueta new_etiqueta3:')
-    print(new_etiqueta3.label)
+    assert new_etiqueta3.label == {'tiempo': 2, 'demanda': 2, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0}
+
+    new_etiqueta4 = Extend_function_feillet2004(mi_grafo_consumos, new_etiqueta, 3)
+    assert new_etiqueta4.nodo_rel == 3
+    assert new_etiqueta4.visited_nodes() == {1, 2, 3}
+    assert new_etiqueta4.costo_acumulado == 0
+    assert new_etiqueta4.label == {'tiempo': 3, 'demanda': 3, 1: 1, 2: 1, 3: 1, 4: 0, 5: 0}
+
+    new_etiqueta5 = Extend_function_feillet2004(mi_grafo_consumos, new_etiqueta, 4)
+    assert new_etiqueta5.nodo_rel == 4
+    assert new_etiqueta5.visited_nodes() == {1, 2, 4}
+    assert new_etiqueta5.costo_acumulado == 4
+    assert new_etiqueta5.label == {'tiempo': 4, 'demanda': 3, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0}
+
+    new_etiqueta6 = Extend_function_feillet2004(mi_grafo_consumos, new_etiqueta3, 4)
+    assert new_etiqueta6.nodo_rel == 4
+    assert new_etiqueta6.visited_nodes() == {1, 3, 4}
+    assert new_etiqueta6.costo_acumulado == 4
+    assert new_etiqueta6.label == {'tiempo': 4, 'demanda': 3, 1: 1, 2: 0, 3: 1, 4: 1, 5: 0}
+
+    new_etiqueta7 = Extend_function_feillet2004(mi_grafo_consumos, new_etiqueta4, 4)
+    assert new_etiqueta7.nodo_rel == 4
+    assert new_etiqueta7.visited_nodes() == {1, 2, 3, 4}
+    assert new_etiqueta7.costo_acumulado == 2
+    assert new_etiqueta7.label == {'tiempo': 5, 'demanda': 4, 1: 1, 2: 1, 3: 1, 4: 1, 5: 0}
+
 
 
 

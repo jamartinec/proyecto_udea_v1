@@ -76,7 +76,8 @@ class Grafo_consumos():
                 if arco not in self._costos_arcos.keys():
                     self._costos_arcos[arco] = 0
 
-
+        #Recursos
+        self.recursos = list(set(recursos_nodos.keys()).union(set(recursos_arcos.keys())) )
 
 
         # inicialización de la estructura de datos nodo-recursos
@@ -244,11 +245,17 @@ class Grafo_consumos():
     def nodo_recursos(self):
         return self._dictio_nodo_recursos
 
+    def recurso_nodo(self,nodo):
+        return self._dictio_nodo_recursos[nodo]
+
     def nodo_ventanas(self):
         return self._dictio_nodo_ventanas
 
     def arco_recursos(self):
         return self._dictio_arco_recursos
+
+    def recurso_arco(self,arco):
+        return self._dictio_arco_recursos[arco]
 
     def nombres_recursos(self):
         return self._recursos_names

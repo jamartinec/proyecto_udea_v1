@@ -158,7 +158,6 @@ def test_graph_consumos_initialization():
 
 
 
-    print('arco recursos:\n ', mi_grafo_consumos.arco_recursos())
 
     assert mi_grafo_consumos.arco_recursos()=={(0, 1): {'tiempo': 8, 'demanda': 0}, (1, 4): {'tiempo': 4, 'demanda': 0},\
                                                (2, 4): {'tiempo': 2, 'demanda': 0}, (0, 3): {'tiempo': 12, 'demanda': 0},\
@@ -199,5 +198,5 @@ def test_graph_consumos_initialization2():
                                         restricciones_nodos=restricciones_nodos,
                                         costos_arcos=costos_arcos)
 
-
-    
+    assert mi_grafo_consumos.recurso_arco((1, 2)) == {'tiempo':2, 'demanda': 0}
+    assert mi_grafo_consumos.recurso_nodo(2) == {'tiempo': 0, 'demanda': 1}
