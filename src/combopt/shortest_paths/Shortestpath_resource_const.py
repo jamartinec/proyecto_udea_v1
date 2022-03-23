@@ -329,8 +329,8 @@ def slave_function(G,source,sink,time,costo,ventana):
             break
     return indicador, nuevos_valores
 '''
-
-
+# la siguiente función la llevé a pareto frontier optimizato (como método de la clase label feillet)
+'''
 def Extend_function_feillet2004(G,etiqueta,nodo):
     # esta función primero debe verificar si es posible extender la etiqueta al nodo dado, para
     #formar una nueva etiqueta
@@ -384,7 +384,7 @@ def Extend_function_feillet2004(G,etiqueta,nodo):
 
         new_etiqueta.update_recursos_sucesores(recursos_sucesores)
         return new_etiqueta
-
+'''
 
 def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
     # Comparar etiquetaA con etiquetaB.
@@ -671,7 +671,8 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list,costo,outp
     Delta = {vertice: set() for vertice in vertices}
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
 
-    Delta[s].add(Label_feillet2004(nodo_rel=s, name_recursos=nombres_recursos, nodos=vertices))
+    #Delta[s].add(Label_feillet2004(nodo_rel=s, name_recursos=nombres_recursos, nodos=vertices))
+    Delta[s].add(Label_feillet2004(nodo_rel=s, G=G))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
     # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
@@ -689,7 +690,8 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list,costo,outp
             F[(actual,sucesor)] = set()
             for etiqueta in Delta[actual]:
                 if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
-                    new_label = Extend_function_feillet2004(etiqueta, sucesor)
+                    #new_label = Extend_function_feillet2004(etiqueta, sucesor)
+                    new_label = etiqueta.extend_function_feillet(sucesor)
                     F[(actual, sucesor)].add(new_label)
             
             

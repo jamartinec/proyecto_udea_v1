@@ -300,25 +300,35 @@ class Label_feillet2004():
         new_etiqueta.update_label_visitas([nodo])
 
         new_etiqueta.update_label_recursos(nuevos_valores)
+        # update label ????
         new_etiqueta.update_cost(self._grafo_consumo_referencia.costos_arcos((self.nodo_rel, nodo)))
 
-        # Recien se ha extendido una etiqueta, es necesario explorar los vecinos, marcar los no alcanzables
-        # y actualizar el diccionario de valores para los vecinos.
+        # Recien se ha extendido una etiqueta, es necesario explorar los vecinos, tomar aquellos
+        # que previamente no han sido visitados en el camino parcial, o que no han sido marcados
+        # como inalcanzables, verificar si desde el nuevo nodo_rel son inalcanzables, y si no,
+        # actualizar el diccionario de valores.
 
-        # En este punto debemos explorar todos los vecinos de nodo_rel que no venían desde la etiqueta
-        # original o predecesora, marcados como no alcanzables.
+        new_etiqueta.find_unreachable_successors()
 
-        # creo que el diccionario de recursos sucesores debe reiniciarse (pensar bien)
         return new_etiqueta
 
     def find_unreachable_successors(self):
         for sucesor in self._grafo_consumo_referencia.succesors(self.nodo_rel):
+            # Cuando la presente etiqueta se ha obtenido mediante la extensión de una etiqueta
+            # ya existente, es posible que algún sucesor del nodo_rel actual ya hubiese sido visitado
+            # o marcado como inalcanzable para la etiqueta predecesora
+            # (y el camino parcial correspondiente) por tanto se quiere evitar volver a corroborarlo.
 
-            indicador, nuevos_valores = self.verificar_recursos(sucesor=sucesor)
-            if indicador == False:
-                self.update_label_visitas([sucesor])
+            # Notar que no debemos preocuparnos por actualizar el diccionario de recursos_sucesores
+            # para sucesores del nodo_rel que ya han sido previamente marcados como inalcanzables.
+            if self.label_visitas[sucesor] == 1:
+                pass
             else:
-                self.recursos_sucesores[sucesor] = nuevos_valores
+                indicador, nuevos_valores = self.verificar_recursos(sucesor=sucesor)
+                if indicador == False:
+                    self.update_label_visitas([sucesor])
+                else:
+                    self.recursos_sucesores[sucesor] = nuevos_valores
 
     def extend_function_feillet(self, nodo):
         if nodo not in self._grafo_consumo_referencia.vertices:
@@ -331,3 +341,4 @@ class Label_feillet2004():
 
         nuevos_valores = self.recursos_sucesores[nodo]
         new_etiqueta = self.extend_label(nodo, nuevos_valores)
+        return new_etiqueta
