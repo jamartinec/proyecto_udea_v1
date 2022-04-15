@@ -257,11 +257,12 @@ class Label_feillet2004():
             self.label_recursos[recurso] = valor
             self.label[recurso] = valor
 
-    def update_label_visitas(self, nodos_list:list):
+    def update_label_visitas(self, nodos_list: list):
         for nodo in nodos_list:
-            self.label_visitas[nodo] = 1
-            self.label[nodo] = 1
-            self.conteo += 1
+            if nodo not in self.visited_nodes():
+                self.label_visitas[nodo] = 1
+                self.label[nodo] = 1
+                self.conteo += 1
 
 
     def update_recursos_sucesores(self,dict_sucesores:dict):

@@ -392,17 +392,13 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
     # EtiquetaA: label_new
     # EtiquetaB: label old
 
-
-    try:
-        assert etiquetaA.longitud ==etiquetaB.longitud
-    except:
-        raise ValueError
+    if etiquetaA.longitud != etiquetaB.longitud or etiquetaA.nodo_rel != etiquetaB.nodo_rel:
+        raise ValueError('Las etiquetas no están asociadas al mismo nodo o tienen longitud'
+                         'distinta')
 
     num_entradas = etiquetaA.longitud
 
-    A_domina = list()
-    B_domina = list()
-    AB_igual = list()
+    A_domina, B_domina, AB_igual = list(), list(), list()
 
     if etiquetaA.costo_acumulado < etiquetaB.costo_acumulado:
         # B no puede dominar a A, nos preguntamos si A domina a B:
@@ -565,8 +561,6 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
                 print('A ES IDENTICO A B')
                 return 2
 
-
-
             else:
                 print('A NO DOMINA A B Y B NO DOMINA A A')
                 print('ninguno entre labelnew y labelold domina')
@@ -586,39 +580,42 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
     
     # Itera sobre just_extended y delta_set . Desarmamos el conjunto delta_set actual, para volverlo a armar :)
     
-    ind_change_front=0
+    ind_change_front = 0
     condicion_nodominado = dict()
-    while just_extended:
-        label_new =just_extended.pop()
-        # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
-        condicion_nodominado[label_new] =1
 
-        # antes de iniciar la actualización, todas las etiquetas en delta_set (pareto set) tienen la característica
-        # de ser no dominadas (marcadas como 0)
-        #control_cambios = dict()
-        for label_old in delta_set:
-            condicion_nodominado[label_old] = 1
-            #control_cambios[label_old] =0
-        
-        
-        
-        
-        
-        while delta_set:
-            label_old = delta_set.pop()
+    # antes de iniciar la actualización, todas las etiquetas en delta_set (pareto set) tienen la característica
+    # de ser no dominadas
+    for label_old in delta_set:
+        condicion_nodominado[label_old] = 1
+    print('condicion_nodominado: ')
+    print(condicion_nodominado)
+
+    while just_extended:
+        label_new = just_extended.pop()
+        print('label_new: ', label_new.label)
+        #print('tipo de label_new: ', type(label_new))
+        # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
+        condicion_nodominado[label_new] = 1
+
+        delta_set_copy = deepcopy(delta_set)
+        while delta_set_copy:
+            print('delta_set: ')
+            print([etiqueta.label for etiqueta in delta_set_copy])
+            label_old = delta_set_copy.pop()
+            print('label_old: ', label_old.label)
             msj=comparacion_etiqueta_par(label_new,label_old)
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
             
-
+            print('msj: ', msj)
             if msj ==2: 
                 #ind_change_front=0
                 break
             
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
             # en el frente de pareto delta_set.
-            elif msj ==-1:
-                condicion_nodominado[label_new]=0
+            elif msj == -1:
+                condicion_nodominado[label_new] = 0
                 break
             
             
@@ -628,28 +625,35 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
             # Se registra cambio en el frente de pareto delta_set. 
 
             elif msj == 1:
-                #ind_change_front=1
-                condicion_nodominado[label_old]=0
+                condicion_nodominado[label_old] = 0
                 continue
 
             # si label old (NO DOMINA A) label new y label_new (NO DOMINA A) label old.  Label_old no sale, pero 
             # aun es posible que label_new domine a otro elemento actual en el frente de pareto delta_set. Por tanto continua
             #la comparación
 
-            elif msj ==0:
+            elif msj == 0:
                 continue
+
+        print('entra al bloque de abajo')
         # Cuando termine este ciclo while es porque todos los elementos del conjunto delta_set actual fueron comparados
         # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios respecto
         # al anterior.
 
-        new_delta_set={label for label in delta_set.union(label_new) if condicion_nodominado[label]==1}
-        s=0
+        delta_set_incr = delta_set.union({label_new})
+        print('delta set incr', delta_set_incr)
+        new_delta_set = set()
+        for label in delta_set_incr:
+            if condicion_nodominado[label] == 1:
+                new_delta_set.add(label)
+        print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
+        s = 0
         for label in delta_set:
             s += condicion_nodominado[label]-1
-        # si el frente de pareto (delta set) cambió
-        if s !=0 or condicion_nodominado[label_new]==1:
-            ind_change_front+=1
-            delta_set=new_delta_set
+        # si el frente de pareto (delta set) cambió (algún viejo salió o el nuevo entró)
+        if s != 0 or condicion_nodominado[label_new] == 1:
+            ind_change_front += 1
+            delta_set = new_delta_set
 
 
     return ind_change_front, delta_set
