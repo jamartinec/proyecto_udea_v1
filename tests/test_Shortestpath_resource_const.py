@@ -7,7 +7,7 @@ from src.combopt.shortest_paths import Pareto_Frontier
 from src.combopt.graph import Grafo, Grafo_consumos
 from src.combopt.shortest_paths import spptw_desrochers1988_imp_fullpareto, \
     retrieve_path, retrieve_paths_inpareto, slave_function, Label_feillet2004,\
-    comparacion_etiqueta_par, EFF_function_feillet2004  # ,verificar_recursos, Extend_function_feillet2004,
+    comparacion_etiqueta_par, EFF_function_feillet2004, espptw_feillet2004  # ,verificar_recursos, Extend_function_feillet2004,
 
 
 my_graph2 = Grafo([0,1,2,3,4],[(0,1),(0,2),(0,3),(1,4),(2,4),(3,4)],directed=True)
@@ -190,8 +190,7 @@ label4 = label2.extend_function_feillet(3)
 label5 = label2.extend_function_feillet(4)
 label6 = label3.extend_function_feillet(4)
 label7 = label4.extend_function_feillet(4)
-# github token;:
-# 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
+
 
 def test_Extended_function_feillet2004_2():
 
@@ -337,4 +336,36 @@ def test_mixture():
     print([etiqueta.label for etiqueta in new_delta_set])
 
 
+def test_espptw_feillet2004():
+    Delta = espptw_feillet2004(mi_grafo_consumos, 1)
+    #print(Delta)
+    Delta_explicit = dict()
+    for vertice, pareto in Delta.items():
+        Delta_explicit[vertice] = [etiqueta.label for etiqueta in pareto]
+    #print(Delta_explicit)
 
+    for vertice, pareto in Delta_explicit.items():
+        print('vertice ', vertice)
+        print('\n', len(pareto))
+
+
+
+    print('#########################')
+    print(Delta_explicit[4])
+
+def test_espptw_feillet2004_2():
+    Delta = espptw_feillet2004(mi_grafo_consumos2, 1)
+    #print(Delta)
+    Delta_explicit = dict()
+    for vertice, pareto in Delta.items():
+        Delta_explicit[vertice] = [etiqueta.label for etiqueta in pareto]
+    #print(Delta_explicit)
+
+    for vertice, pareto in Delta_explicit.items():
+        print('vertice ', vertice)
+        print('\n', len(pareto))
+
+
+
+    print('#########################')
+    print(Delta_explicit[4])

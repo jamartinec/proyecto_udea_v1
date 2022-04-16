@@ -587,22 +587,22 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
     # de ser no dominadas
     for label_old in delta_set:
         condicion_nodominado[label_old] = 1
-    print('condicion_nodominado: ')
-    print(condicion_nodominado)
+    #print('condicion_nodominado: ')
+    #print(condicion_nodominado)
 
     while just_extended:
         label_new = just_extended.pop()
-        print('label_new: ', label_new.label)
+        #print('label_new: ', label_new.label)
         #print('tipo de label_new: ', type(label_new))
         # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
         condicion_nodominado[label_new] = 1
 
         delta_set_copy = deepcopy(delta_set)
         while delta_set_copy:
-            print('delta_set: ')
-            print([etiqueta.label for etiqueta in delta_set_copy])
+            #print('delta_set: ')
+            #print([etiqueta.label for etiqueta in delta_set_copy])
             label_old = delta_set_copy.pop()
-            print('label_old: ', label_old.label)
+            #print('label_old: ', label_old.label)
             msj=comparacion_etiqueta_par(label_new,label_old)
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
@@ -635,18 +635,18 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
             elif msj == 0:
                 continue
 
-        print('entra al bloque de abajo')
+        #print('entra al bloque de abajo')
         # Cuando termine este ciclo while es porque todos los elementos del conjunto delta_set actual fueron comparados
         # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios respecto
         # al anterior.
 
         delta_set_incr = delta_set.union({label_new})
-        print('delta set incr', delta_set_incr)
+        #print('delta set incr', delta_set_incr)
         new_delta_set = set()
         for label in delta_set_incr:
             if condicion_nodominado[label] == 1:
                 new_delta_set.add(label)
-        print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
+        #print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
         s = 0
         for label in delta_set:
             s += condicion_nodominado[label]-1
@@ -660,7 +660,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
 
 
 
-def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list,costo,output_type=True):
+def espptw_feillet2004(G:Grafo_consumos, s):
     # a partir del grafo dado y los recursos necesito crear una estructura
     # para las etiquetas. De pronto conviene crear una clase, porque las etiquetas
     # guardan información pero no están cambiando de dimensiones.
@@ -668,42 +668,53 @@ def espptw_feillet2004(G:Grafo_consumos,s,recursos:list, ventana:list,costo,outp
     # pensemos que pasamos los diccionarios de recursos en una lista
     # y las correspondientes restricciones o ventanas en otra, relacionadas por la posición
 
-    nombres_recursos = G.nombres_recursos()
-    vertices =G.vertices
 
     # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
-    Delta = {vertice: set() for vertice in vertices}
+    Delta = {vertice: set() for vertice in G.vertices}
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
 
-    #Delta[s].add(Label_feillet2004(nodo_rel=s, name_recursos=nombres_recursos, nodos=vertices))
-    Delta[s].add(Label_feillet2004(nodo_rel=s, G=G))
+
+    Delta[s].add(Label_feillet2004(nodo_rel = s, G = G))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
     # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
-    F=dict()
+    F = dict()
 
     # Conjunto de nodos esperando a ser tratados. No se especifica cuál es la estructura adecuada,
     # podríamos tratarlo como un cola FIFO siguiendo la mejora de moore para el algoritmo de Bellman Ford.
     # muy importante: if maxlen is not specified, deques may grow up to an arbitrary length.
 
-    E=deque([s])
+    E = deque([s])
 
     while E:
+        print('\nEl deque E es: ',E)
         actual = E.pop()
+        print('\nse está procesando el nodo: ', actual)
         for sucesor in G.succesors(actual):
-            F[(actual,sucesor)] = set()
+            print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
+            F[(actual, sucesor)] = set()
             for etiqueta in Delta[actual]:
-                if etiqueta.label_visitas[sucesor]==0: # si el nodo sucesor no es un nodo 'inalcanzable'
-                    #new_label = Extend_function_feillet2004(etiqueta, sucesor)
+                # si el nodo sucesor no es un nodo 'inalcanzable'
+                if etiqueta.label_visitas[sucesor] == 0:
+                    print('considerando la etiqueta: ')
+                    print(etiqueta.label)
                     new_label = etiqueta.extend_function_feillet(sucesor)
+                    print('la nueva etiqueta obtenida es: ')
+                    print(new_label.label)
                     F[(actual, sucesor)].add(new_label)
             
-            
-            # conteo de cambios (indicador) en el frente de pareto de Delta[sucesor], y el frente actualizado
-            ind_change_front, Delta[sucesor]=\
-                 EFF_function_feillet2004(delta_set=Delta[sucesor],just_extended=F[(actual,sucesor)])
-            
-            if ind_change_front >1:
-                E.appendleft(sucesor)
-        E.remove(actual)
+
+            # conteo de cambios (indicador) en el frente de pareto de Delta[sucesor],
+            # y el frente actualizado
+            ind_change_front, Delta[sucesor] =\
+                 EFF_function_feillet2004(delta_set=Delta[sucesor], just_extended=F[(actual, sucesor)])
+
+            print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
+            if ind_change_front > 0:
+                if sucesor not in E:
+                    E.appendleft(sucesor)
+                    print('sucesor {} se agregó a E'.format(str(sucesor)))
+        #E.remove(actual)
+
+    return Delta
 
