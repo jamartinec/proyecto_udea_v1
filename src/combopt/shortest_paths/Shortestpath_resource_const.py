@@ -419,22 +419,22 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
                 if len(A_domina)==len(etiquetaA.label_visitas)+ len(etiquetaA.label_recursos):
-                    print('PARECE QUE A DOMINA A B')
-                    print('label_new domina a label_old')
+                    #print('PARECE QUE A DOMINA A B')
+                    #print('label_new domina a label_old')
                     
                     return 1
 
             else:
                 # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
                 # visita de B que es menor que la correspondiente etiqueta de A.
-                print('A NO DOMINA A B Y B NO DOMINA A A')
-                print('ninguno entre labelnew y labelold domina')
+                #print('A NO DOMINA A B Y B NO DOMINA A A')
+                #print('ninguno entre labelnew y labelold domina')
                 
                 return 0
 
         elif etiquetaA.conteo > etiquetaB.conteo:
-            print('A NO DOMINA A B Y B NO DOMINA A A')
-            print('ninguno entre labelnew y labelold domina')
+            #print('A NO DOMINA A B Y B NO DOMINA A A')
+            #print('ninguno entre labelnew y labelold domina')
                 
             return 0
 
@@ -457,21 +457,21 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                 if len(B_domina)==len(etiquetaB.label_visitas)+ len(etiquetaB.label_recursos):
-                    print('PARECE QUE B DOMINA A A')
-                    print('label old domina a label new')
+                    #print('PARECE QUE B DOMINA A A')
+                    #print('label old domina a label new')
                     return -1
 
             else:
                 # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
                 # visita de A que es menor que la correspondiente etiqueta de B.
-                print('B NO DOMINA A A Y A NO DOMINA A B')
-                print('ninguno entre labelnew y labelold domina')
+                #print('B NO DOMINA A A Y A NO DOMINA A B')
+                #print('ninguno entre labelnew y labelold domina')
                 return 0
 
 
         elif etiquetaB.conteo > etiquetaA.conteo:
-            print('A NO DOMINA A B Y B NO DOMINA A A')
-            print('ninguno entre labelnew y labelold domina')
+            #print('A NO DOMINA A B Y B NO DOMINA A A')
+            #print('ninguno entre labelnew y labelold domina')
             return 0
 
     else:
@@ -493,15 +493,15 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
-                    print('PARECE QUE A DOMINA A B')
-                    print('label_new domina a label_old')
+                    #print('PARECE QUE A DOMINA A B')
+                    #print('label_new domina a label_old')
                     
                     return 1
             else:
                 # En este caso concluimos que A no domina a B, pues hay al menos una etiqueta de
                 # visita de B que es menor que la correspondiente etiqueta de A.
-                print('A NO DOMINA A B Y B NO DOMINA A A')
-                print('ninguno entre labelnew y labelold domina')
+                #print('A NO DOMINA A B Y B NO DOMINA A A')
+                #print('ninguno entre labelnew y labelold domina')
                 return 0
 
         elif etiquetaB.conteo < etiquetaA.conteo:
@@ -520,15 +520,15 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
-                    print('PARECE QUE B DOMINA A A')
-                    print('label old domina a label new')
+                    #print('PARECE QUE B DOMINA A A')
+                    #print('label old domina a label new')
                     return -1
 
             else:
                 # En este caso concluimos que B no domina a A, pues hay al menos una etiqueta de
                 # visita de A que es menor que la correspondiente etiqueta de B.
-                print('A NO DOMINA A B Y B NO DOMINA A A')
-                print('ninguno entre labelnew y labelold domina')
+                #print('A NO DOMINA A B Y B NO DOMINA A A')
+                #print('ninguno entre labelnew y labelold domina')
                 
                 return 0
 
@@ -545,25 +545,25 @@ def comparacion_etiqueta_par(etiquetaA:label,etiquetaB:label):
             # Si ningún recurso en B domina al correspondiente recurso en A, y si hay al menos un recurso de A
             # que domine a B, entonces A domina a B
             if len(B_domina)==0 and len(A_domina)>0:
-                print('A DOMINA A B')
-                print('label_new domina a label_old')
+                #print('A DOMINA A B')
+                #print('label_new domina a label_old')
                     
                 return 1
             
             
             elif len(A_domina) ==0 and len(B_domina)>0:
-                print('B DOMINA A A')
-                print('label old domina a label new')
+                #print('B DOMINA A A')
+                #print('label old domina a label new')
                 return -1
 
 
             elif len(A_domina)==0 and len(B_domina)==0:
-                print('A ES IDENTICO A B')
+                #print('A ES IDENTICO A B')
                 return 2
 
             else:
-                print('A NO DOMINA A B Y B NO DOMINA A A')
-                print('ninguno entre labelnew y labelold domina')
+                #print('A NO DOMINA A B Y B NO DOMINA A A')
+                #print('ninguno entre labelnew y labelold domina')
                 
                 return 0
 
@@ -607,7 +607,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
             
-            print('msj: ', msj)
+            #print('msj: ', msj)
             if msj ==2: 
                 #ind_change_front=0
                 break
@@ -687,7 +687,7 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     E = deque([s])
 
     while E:
-        print('\nEl deque E es: ',E)
+        #print('\nEl deque E es: ',E)
         actual = E.pop()
         print('\nse está procesando el nodo: ', actual)
         for sucesor in G.succesors(actual):
@@ -696,11 +696,11 @@ def espptw_feillet2004(G:Grafo_consumos, s):
             for etiqueta in Delta[actual]:
                 # si el nodo sucesor no es un nodo 'inalcanzable'
                 if etiqueta.label_visitas[sucesor] == 0:
-                    print('considerando la etiqueta: ')
-                    print(etiqueta.label)
+                    #print('considerando la etiqueta: ')
+                    #print(etiqueta.label)
                     new_label = etiqueta.extend_function_feillet(sucesor)
-                    print('la nueva etiqueta obtenida es: ')
-                    print(new_label.label)
+                    #print('la nueva etiqueta obtenida es: ')
+                    #print(new_label.label)
                     F[(actual, sucesor)].add(new_label)
             
 
