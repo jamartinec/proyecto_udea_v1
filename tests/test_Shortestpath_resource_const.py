@@ -289,6 +289,7 @@ def test_EFF_funcion_feillet2004():
 
 
 ######## Segunda instancia test ###############################################
+# Este ejemplo no satisface la desigualdad triangular, la cual es hipótesis para el algoritmo
 vertices2 = [1, 2, 3, 4, 5, 6]
 arcos2 = [(1, 2), (1, 3), (1, 4), (2, 5), (2, 6), (3, 4), (3, 5), (4, 2), (4, 5), (6, 5)]
 tiempo_nodos2 = {v: 0 for v in vertices2}  # no hay tiempo de espera en los nodos
@@ -365,7 +366,5 @@ def test_espptw_feillet2004_2():
         print('vertice ', vertice)
         print('\n', len(pareto))
 
-
-
     print('#########################')
-    print(Delta_explicit[4])
+    #print(Delta_explicit[4])

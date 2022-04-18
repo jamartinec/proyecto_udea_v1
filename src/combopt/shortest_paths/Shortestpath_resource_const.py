@@ -687,11 +687,11 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     E = deque([s])
 
     while E:
-        #print('\nEl deque E es: ',E)
+        print('\nEl deque E es: ', E)
         actual = E.pop()
         print('\nse está procesando el nodo: ', actual)
         for sucesor in G.succesors(actual):
-            print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
+            #print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
             F[(actual, sucesor)] = set()
             for etiqueta in Delta[actual]:
                 # si el nodo sucesor no es un nodo 'inalcanzable'
@@ -703,13 +703,14 @@ def espptw_feillet2004(G:Grafo_consumos, s):
                     #print(new_label.label)
                     F[(actual, sucesor)].add(new_label)
             
-
-            # conteo de cambios (indicador) en el frente de pareto de Delta[sucesor],
-            # y el frente actualizado
-            ind_change_front, Delta[sucesor] =\
-                 EFF_function_feillet2004(delta_set=Delta[sucesor], just_extended=F[(actual, sucesor)])
-
-            print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
+            if F[(actual, sucesor)]:
+                # conteo de cambios (indicador) en el frente de pareto de Delta[sucesor],
+                # y el frente actualizado
+                ind_change_front, Delta[sucesor] =\
+                     EFF_function_feillet2004(delta_set=Delta[sucesor], just_extended=F[(actual, sucesor)])
+            else:
+                ind_change_front = 0
+            #print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
             if ind_change_front > 0:
                 if sucesor not in E:
                     E.appendleft(sucesor)

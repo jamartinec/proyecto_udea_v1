@@ -292,6 +292,9 @@ class Label_feillet2004():
                 indicador = False
                 break
 
+            if cantidad < nodo_ventanas[sucesor][recurso][0]:
+                nuevos_valores[recurso] = nodo_ventanas[sucesor][recurso][0]
+
         return indicador, nuevos_valores
 
     def extend_label(self, nodo, nuevos_valores):
