@@ -20,7 +20,7 @@ ruta = ruta_general+instancia
 with open(ruta, 'rb') as inst_file:
     [vertices, arcos, recursos_nodos, recursos_arcos, restricciones_nodos, costos_arcos] = pkl.load(inst_file)
 
-
+print('el número de arcos es: ',len(arcos))
 grafo_consum_c101_25 = Grafo_consumos(vertices,
                                    arcos,
                                    directed=True,
