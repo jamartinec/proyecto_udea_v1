@@ -1,8 +1,9 @@
 # coding: utf8
 
 from sortedcontainers import SortedList
-from copy import deepcopy
+from copy import copy, deepcopy
 import numpy as np
+import pickle as pkl
 
 
 class ParetoFrontier():
@@ -196,12 +197,17 @@ class Label_feillet2004():
     clase para representar etiquetas en el algoritmo de feillet2004
     '''
 
-    def __init__(self, nodo_rel: object, G: object):
 
+
+    def __init__(self, nodo_rel: object, G: object, nombre_label: str):
+
+        self.ruta_absoluta = r'C:\Users\Usuario\PycharmProjects\proyecto_maestria_v1\experiments\solomon\estados_pd'
         self._grafo_consumo_referencia = G
 
         # nodo relacionado
         self.nodo_rel = nodo_rel
+
+        self.nombre_label = nombre_label
 
         # lista de nodos con la cual se inicializa la etiqueta
         # (debería ser la lista de nodos del grafo G)
@@ -297,9 +303,17 @@ class Label_feillet2004():
 
         return indicador, nuevos_valores
 
-    def extend_label(self, nodo, nuevos_valores):
+    def extend_label(self, nodo, nuevos_valores, new_name):
 
-        new_etiqueta = deepcopy(self)
+        #new_etiqueta = deepcopy(self)
+        #new_etiqueta = copy(self)
+        ruta = self.ruta_absoluta + self.nombre_label
+        with open(ruta, 'wb') as file_obj:
+            pkl.dump(self, file_obj)
+
+        with open(ruta, 'rb') as read_file:
+            new_etiqueta = pkl.load(read_file)
+
         new_etiqueta.update_nodo_rel(nodo)
         new_etiqueta.update_label_visitas([nodo])
 
@@ -334,7 +348,7 @@ class Label_feillet2004():
                 else:
                     self.recursos_sucesores[sucesor] = nuevos_valores
 
-    def extend_function_feillet(self, nodo):
+    def extend_function_feillet(self, nodo, new_name):
         if nodo not in self._grafo_consumo_referencia.vertices:
             raise ValueError(f"extended function method expected a node in " \
                              f"reference graph, got{nodo}")
@@ -344,5 +358,5 @@ class Label_feillet2004():
                              'marcado como inalcanzable')
 
         nuevos_valores = self.recursos_sucesores[nodo]
-        new_etiqueta = self.extend_label(nodo, nuevos_valores)
+        new_etiqueta = self.extend_label(nodo, nuevos_valores, new_name)
         return new_etiqueta

@@ -674,7 +674,8 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
 
 
-    Delta[s].add(Label_feillet2004(nodo_rel = s, G = G))
+    #Delta[s].add(Label_feillet2004(nodo_rel = s, G = G))
+    Delta[s].add(Label_feillet2004(nodo_rel=s, G=G, nombre_label='origen'))
 
     # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
     # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
@@ -686,19 +687,30 @@ def espptw_feillet2004(G:Grafo_consumos, s):
 
     E = deque([s])
 
+    alpha = 0
     while E:
         print('\nEl deque E es: ', E)
         actual = E.pop()
+        alpha += 1
         print('\nse está procesando el nodo: ', actual)
+        beta = 0
         for sucesor in G.succesors(actual):
+            beta += 1
             #print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
             F[(actual, sucesor)] = set()
+
+            gamma = 0
             for etiqueta in Delta[actual]:
                 # si el nodo sucesor no es un nodo 'inalcanzable'
                 if etiqueta.label_visitas[sucesor] == 0:
+                    gamma += 1
                     #print('considerando la etiqueta: ')
                     #print(etiqueta.label)
-                    new_label = etiqueta.extend_function_feillet(sucesor)
+                    new_name = 'label' + '_' + str(alpha) + '_' + str(beta) + '_' + str(gamma)
+
+                    #new_label = etiqueta.extend_function_feillet(sucesor)
+                    new_label = etiqueta.extend_function_feillet(sucesor, new_name)
+
                     #print('la nueva etiqueta obtenida es: ')
                     #print(new_label.label)
                     F[(actual, sucesor)].add(new_label)
