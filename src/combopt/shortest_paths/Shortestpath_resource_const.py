@@ -597,13 +597,17 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
         # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
         condicion_nodominado[label_new] = 1
 
-        delta_set_copy = deepcopy(delta_set)
-        while delta_set_copy:
+        #delta_set_copy = deepcopy(delta_set)
+        #while delta_set_copy:
+        for label_old in delta_set:
             #print('delta_set: ')
             #print([etiqueta.label for etiqueta in delta_set_copy])
-            label_old = delta_set_copy.pop()
+
+            # pilas, se usa con el while, no con el for
+            #label_old = delta_set_copy.pop()
+
             #print('label_old: ', label_old.label)
-            msj=comparacion_etiqueta_par(label_new,label_old)
+            msj = comparacion_etiqueta_par(label_new, label_old)
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
             

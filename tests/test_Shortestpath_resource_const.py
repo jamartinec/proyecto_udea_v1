@@ -183,13 +183,13 @@ mi_grafo_consumos = Grafo_consumos(vertices,
                                    costos_arcos=costos_arcos)
 
 # Crear una etiqueta
-etiqueta = Label_feillet2004(nodo_rel=1, G=mi_grafo_consumos)
-label2 = etiqueta.extend_function_feillet(2)
-label3 = etiqueta.extend_function_feillet(3)
-label4 = label2.extend_function_feillet(3)
-label5 = label2.extend_function_feillet(4)
-label6 = label3.extend_function_feillet(4)
-label7 = label4.extend_function_feillet(4)
+etiqueta = Label_feillet2004(nodo_rel=1, G=mi_grafo_consumos, nombre_label='origen')
+label2 = etiqueta.extend_function_feillet(2, 'label2')
+label3 = etiqueta.extend_function_feillet(3, 'label3')
+label4 = label2.extend_function_feillet(3, 'label4')
+label5 = label2.extend_function_feillet(4, 'label5')
+label6 = label3.extend_function_feillet(4, 'label6')
+label7 = label4.extend_function_feillet(4, 'label7')
 
 
 def test_Extended_function_feillet2004_2():
@@ -254,7 +254,7 @@ def test_Extended_function_feillet2004_2():
 
 def test_comparacion_etiqueta_par():
     # Replicar la etiqueta 5 usando los métodos auxiliares de label_feillet
-    label5_d = Label_feillet2004(nodo_rel=4, G=mi_grafo_consumos)
+    label5_d = Label_feillet2004(nodo_rel=4, G=mi_grafo_consumos, nombre_label='label_5d')
     label5_d.update_label_visitas([1, 2, 4])
     label5_d.update_label_recursos({'tiempo':4,'demanda': 3})
     dic_resource_succ = {2: {'tiempo': 2, 'demanda': 2}, 3: {'tiempo': 3, 'demanda': 3},
@@ -318,13 +318,13 @@ mi_grafo_consumos2 = Grafo_consumos(vertices2,
                                    costos_arcos=costos_arcos2)
 def test_mixture():
     # Crear una etiqueta
-    v2_label0 = Label_feillet2004(nodo_rel=1, G=mi_grafo_consumos2)
-    v2_label1 = v2_label0.extend_function_feillet(2)
-    v2_label2 = v2_label0.extend_function_feillet(3)
-    v2_label3 = v2_label0.extend_function_feillet(4)
-    v2_label4 = v2_label2.extend_function_feillet(4)
-    v2_label5 = v2_label4.extend_function_feillet(2)
-    v2_label6 = v2_label3.extend_function_feillet(2)
+    v2_label0 = Label_feillet2004(nodo_rel = 1, G = mi_grafo_consumos2, nombre_label = 'v2_label0')
+    v2_label1 = v2_label0.extend_function_feillet(2, 'v2_label1')
+    v2_label2 = v2_label0.extend_function_feillet(3, 'v2_label2')
+    v2_label3 = v2_label0.extend_function_feillet(4, 'v2_label3')
+    v2_label4 = v2_label2.extend_function_feillet(4, 'v2_label4')
+    v2_label5 = v2_label4.extend_function_feillet(2, 'v2_label5')
+    v2_label6 = v2_label3.extend_function_feillet(2, 'v2_label6')
 
     delta_set = {v2_label1}
     just_extended = {v2_label5}

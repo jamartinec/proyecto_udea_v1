@@ -13,15 +13,15 @@ from src.combopt.shortest_paths import spptw_desrochers1988_imp_fullpareto, \
 
 ## rcsp1 ###
 
-ruta_general = r'./solomon/solomon_10_diccionarios/'
-instancia = 'C101_10.pkl'
+ruta_general = r'./solomon/solomon_50_diccionarios/'
+instancia = 'C101_50.pkl'
 ruta = ruta_general+instancia
 
 with open(ruta, 'rb') as inst_file:
     [vertices, arcos, recursos_nodos, recursos_arcos, restricciones_nodos, costos_arcos] = pkl.load(inst_file)
 
 print('el número de arcos es: ',len(arcos))
-grafo_consum_c101_10 = Grafo_consumos(vertices,
+grafo_consum_c101_50 = Grafo_consumos(vertices,
                                    arcos,
                                    directed=True,
                                    recursos_nodos=recursos_nodos,
@@ -29,7 +29,7 @@ grafo_consum_c101_10 = Grafo_consumos(vertices,
                                    restricciones_nodos=restricciones_nodos,
                                    costos_arcos=costos_arcos)
 
-Delta = espptw_feillet2004(grafo_consum_c101_10, 0)
+Delta = espptw_feillet2004(grafo_consum_c101_50, 0)
 #print(Delta)
 Delta_explicit = dict()
 for vertice, pareto in Delta.items():
@@ -37,7 +37,7 @@ for vertice, pareto in Delta.items():
 
 print(Delta_explicit)
 
-#for vertice, pareto in Delta_explicit.items():
-#    print('vertice ', vertice)
-#    print('\n', len(pareto))
+for vertice, pareto in Delta_explicit.items():
+    print('vertice ', vertice)
+    print('\n', len(pareto))
 

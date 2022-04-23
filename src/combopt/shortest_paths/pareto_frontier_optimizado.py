@@ -253,7 +253,10 @@ class Label_feillet2004():
             print('no es un nodo en la lista de inicialización de la etiqueta')
 
     def update_nodo_rel(self, nodo):
-        self.nodo_rel=nodo
+        self.nodo_rel = nodo
+
+    def update_label_name(self, new_name):
+        self.nombre_label = new_name
 
     def update_label_recursos(self, valores_recursos:dict):
         # Deberíamos garantizar que el recurso que intento actualizar sea en
@@ -307,13 +310,14 @@ class Label_feillet2004():
 
         #new_etiqueta = deepcopy(self)
         #new_etiqueta = copy(self)
-        ruta = self.ruta_absoluta + self.nombre_label
+        ruta = self.ruta_absoluta + '/' + self.nombre_label
         with open(ruta, 'wb') as file_obj:
             pkl.dump(self, file_obj)
 
         with open(ruta, 'rb') as read_file:
             new_etiqueta = pkl.load(read_file)
 
+        new_etiqueta.update_label_name(new_name)
         new_etiqueta.update_nodo_rel(nodo)
         new_etiqueta.update_label_visitas([nodo])
 

@@ -154,7 +154,7 @@ def generar_guardar_instancias(folder_name='solomon_25', tipo_instance=25):
 
 
 if __name__ == '__main__':
-    generar_guardar_instancias('solomon_10', 10)
+    generar_guardar_instancias('solomon_50', 50)
 
 
 
