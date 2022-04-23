@@ -689,8 +689,13 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     # podríamos tratarlo como un cola FIFO siguiendo la mejora de moore para el algoritmo de Bellman Ford.
     # muy importante: if maxlen is not specified, deques may grow up to an arbitrary length.
 
+    control_visitados = {s}
     E = deque([s])
 
+    # Con pop() sale un elemento del frente (cabeza). La modificación que se requiere es llevar un
+    # registro de los nodos que ya han estado en E. Si un nodo ya ha estado en E, entonces se envía al
+    # frente haciendo appendright, y si no ha estado previamente en el frente se envía a la cola
+    # haciendo append left.
     alpha = 0
     while E:
         print('\nEl deque E es: ', E)
@@ -729,7 +734,11 @@ def espptw_feillet2004(G:Grafo_consumos, s):
             #print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
             if ind_change_front > 0:
                 if sucesor not in E:
-                    E.appendleft(sucesor)
+                    if sucesor in control_visitados:
+                        E.append(sucesor)
+                    else:
+                        E.appendleft(sucesor)
+                    control_visitados.add(sucesor)
                     print('sucesor {} se agregó a E'.format(str(sucesor)))
         #E.remove(actual)
 

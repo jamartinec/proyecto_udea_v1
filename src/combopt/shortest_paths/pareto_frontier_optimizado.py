@@ -201,7 +201,10 @@ class Label_feillet2004():
 
     def __init__(self, nodo_rel: object, G: object, nombre_label: str):
 
-        self.ruta_absoluta = r'C:\Users\Usuario\PycharmProjects\proyecto_maestria_v1\experiments\solomon\estados_pd'
+        #self.ruta_absoluta = r'C:\Users\Usuario\PycharmProjects\proyecto_maestria_v1\experiments\solomon\estados_pd'
+
+        self.ruta_absoluta = r'D:\UdeA\estados_pd'
+
         self._grafo_consumo_referencia = G
 
         # nodo relacionado
