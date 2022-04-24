@@ -1,5 +1,6 @@
 import os
 import pickle as pkl
+from copy import copy
 import pandas as pd
 import numpy as np
 from src.combopt.shortest_paths import Dijkstra, Reverse_Dijkstra, Bidirectional_Dijkstra
@@ -67,7 +68,7 @@ def read_instance_solomon(route_instance: str, tipo_instance: int):
     for p in test.keys():
         for q in test.keys():
             if p != q and not( (p==0 and q==fin) or (p==fin and q==0)) and (q!=0) and (p!=fin):
-                distancia[(p, q)] = np.round(((test[p]['coord_y'] - test[q]['coord_y']) ** 2 +
+                distancia[(p, q)] = np.round( ((test[p]['coord_y'] - test[q]['coord_y']) ** 2 +
                                               (test[p]['coord_x'] - test[q]['coord_x']) ** 2) ** (1 / 2), 1)
 
     costo = dict()
@@ -80,7 +81,7 @@ def read_instance_solomon(route_instance: str, tipo_instance: int):
     for p in test.keys():
         for q in test.keys():
             if p != q and not( (p==0 and q==fin) or (p==fin and q==0)) and (q!=0) and (p!=fin):
-                tiempo[(p, q)] = np.round(distancia[(p, q)] + test[p]['service_time'], 1)
+                tiempo[(p, q)] = np.round( distancia[(p, q)] + test[p]['service_time'], 1)
 
     consumo = dict()
     for p in test.keys():
@@ -107,8 +108,24 @@ def read_instance_solomon(route_instance: str, tipo_instance: int):
 
 def detect_infeasible_nodes_arcs(vertices: list, arcos: list, tiempo: dict,
                                  consumo: dict, ventanas_tiempo: dict, ventanas_demanda: dict):
+    temp_inf_arcs = set()
+    demand_inf_arcs = set()
+    for arco in arcos:
+        if tiempo[arco] > ventanas_tiempo[arco[1]][1]:
+            temp_inf_arcs.add(arco)
+        if consumo[arco] > ventanas_demanda[arco[1]][1]:
+            demand_inf_arcs.add(arco)
 
-    grafo_temporal = Grafo(vertices, arcos, directed = True)
+    # Crear un grafo temporal eliminando todos los arcos que en el paso
+    # anterior fueron marcados como infeasible.
+
+    arcos_infeasible = temp_inf_arcs.union(demand_inf_arcs)
+    arcos_copy = copy(arcos)
+    while arcos_infeasible:
+        arco = arcos_infeasible.pop()
+        arcos_copy.remove(arco)
+
+    grafo_temporal = Grafo(vertices, arcos_copy, directed = True)
 
     min_temp_path = Dijkstra(grafo_temporal, tiempo, 0)
 
@@ -129,13 +146,7 @@ def detect_infeasible_nodes_arcs(vertices: list, arcos: list, tiempo: dict,
         if ventanas_demanda[nodo][1] < min_consumo_path[nodo]:
             consumo_inf_nodes.add(nodo)
 
-    temp_inf_arcs = set()
-    demand_inf_arcs = set()
-    for arco in arcos:
-        if tiempo[arco] > ventanas_tiempo[arco[1]][1]:
-            temp_inf_arcs.add(arco)
-        if consumo[arco] > ventanas_demanda[arco[1]][1]:
-            demand_inf_arcs.add(arco)
+
 
     return temp_inf_nodes, consumo_inf_nodes, temp_inf_arcs, demand_inf_arcs
 
@@ -154,7 +165,7 @@ def generar_guardar_instancias(folder_name='solomon_25', tipo_instance=25):
 
 
 if __name__ == '__main__':
-    generar_guardar_instancias('solomon_50', 50)
+    generar_guardar_instancias('solomon_35', 35)
 
 
 

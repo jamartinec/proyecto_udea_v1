@@ -2,12 +2,14 @@
 from cProfile import label
 from calendar import c
 import heapq
+# import pickle as pkl
 from src.combopt.graph import Grafo,Grafo_consumos
 #from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
 from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
 from sortedcontainers import SortedList
 from collections import deque
 from copy import deepcopy
+
 
 
 # def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana):
@@ -620,6 +622,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
             # en el frente de pareto delta_set.
             elif msj == -1:
                 condicion_nodominado[label_new] = 0
+                # NOTAR QUE PODRÍAMOS ELIMINAR A label_new
                 break
             
             
@@ -630,6 +633,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
 
             elif msj == 1:
                 condicion_nodominado[label_old] = 0
+                # NOTAR QUE PODRÍAMOS ELIMINAR A label_old
                 continue
 
             # si label old (NO DOMINA A) label new y label_new (NO DOMINA A) label old.  Label_old no sale, pero 
@@ -640,7 +644,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
                 continue
 
         #print('entra al bloque de abajo')
-        # Cuando termine este ciclo while es porque todos los elementos del conjunto delta_set actual fueron comparados
+        # Cuando termine este ciclo for es porque todos los elementos del conjunto delta_set actual fueron comparados
         # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios respecto
         # al anterior.
 
@@ -650,7 +654,10 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
         for label in delta_set_incr:
             if condicion_nodominado[label] == 1:
                 new_delta_set.add(label)
+            # no necesitamos etiquetas dominadas. Una vez dominada, no vuelve a entrar al frente.
+
         #print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
+
         s = 0
         for label in delta_set:
             s += condicion_nodominado[label]-1
@@ -659,6 +666,8 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
             ind_change_front += 1
             delta_set = new_delta_set
 
+        # ¿podemos borrar delta_set incrementado?
+        del delta_set_incr
 
     return ind_change_front, delta_set
 
@@ -672,16 +681,34 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     # pensemos que pasamos los diccionarios de recursos en una lista
     # y las correspondientes restricciones o ventanas en otra, relacionadas por la posición
 
+    # ruta de los archivos pkl que contienen las etiquetas o estados:
 
+    #################################################################################
+    # ruta_absoluta = r'D:\UdeA\estados_pd'
+    ###############################################################################
     # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
     Delta = {vertice: set() for vertice in G.vertices}
     # ¿cuál es el método para encontrar el conjunto de sucesores de un nodo? G.succesors(nodo)
 
+    Conteo = {vertice: 0 for vertice in G.vertices}
 
+    ##########################################################################################
     #Delta[s].add(Label_feillet2004(nodo_rel = s, G = G))
     Delta[s].add(Label_feillet2004(nodo_rel=s, G=G, nombre_label='origen'))
+    # GENERAR UN DICCIONARIO ALTERNATIVO QUE SÓLO GUARDE EL NOMBRE DE LAS ETIQUETAS, PARA SER
+    # LEÍDOS COMO .pkl CUANDO SEA REQUERIDO
 
-    # pilas! esta sí es la forma adecuada de manejar las etiquetas que se extienden?
+    #Delta_nombres = {vertice: set() for vertice in G.vertices}
+    #Delta[s].add('origen')
+    # Guardar etiqueta origen como pkl:
+    #ruta = ruta_absoluta + '/' + 'origen'
+    #with open(ruta, 'wb') as file_obj:
+    #    pkl.dump(self, file_obj)
+
+    ############################################################################################
+
+
+
     # En el artículo: F_{ij} es el conjunto de etiquetas extendidas del nodo vi al nodo vj
     F = dict()
 
@@ -695,7 +722,7 @@ def espptw_feillet2004(G:Grafo_consumos, s):
     # Con pop() sale un elemento del frente (cabeza). La modificación que se requiere es llevar un
     # registro de los nodos que ya han estado en E. Si un nodo ya ha estado en E, entonces se envía al
     # frente haciendo appendright, y si no ha estado previamente en el frente se envía a la cola
-    # haciendo append left.
+    # haciendo append left. Esto se puede combinar con muchas otras heurísticas.
     alpha = 0
     while E:
         print('\nEl deque E es: ', E)
@@ -709,7 +736,15 @@ def espptw_feillet2004(G:Grafo_consumos, s):
             F[(actual, sucesor)] = set()
 
             gamma = 0
+            ######################################################################################
             for etiqueta in Delta[actual]:
+            # for etiqueta_nombre in Delta_nombres[actual]:
+            # Leer el archivo pkl correspondiente
+            #ruta = ruta_absoluta + '/' + etiqueta_nombre
+            #with open(ruta, 'rb') as read_file:
+            #    etiqueta = pkl.load(read_file)
+
+            #######################################################################################
                 # si el nodo sucesor no es un nodo 'inalcanzable'
                 if etiqueta.label_visitas[sucesor] == 0:
                     gamma += 1
@@ -734,12 +769,23 @@ def espptw_feillet2004(G:Grafo_consumos, s):
             #print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
             if ind_change_front > 0:
                 if sucesor not in E:
-                    if sucesor in control_visitados:
-                        E.append(sucesor)
-                    else:
-                        E.appendleft(sucesor)
+                    E.appendleft(sucesor)
+
+                    # AGREGAR LO SIGUIENTE SI SE QUIERE LA IMPLEMENTACIÓN DEQUE PURA
+                    #if sucesor in control_visitados:
+                    #if 1 <= Conteo[sucesor] <= 5:
+                    #    E.append(sucesor)
+                    #    Conteo[sucesor] += 1
+                    #else:
+                    #    E.appendleft(sucesor)
+                    #    Conteo[sucesor] = (Conteo[sucesor] + 1) % 5
                     control_visitados.add(sucesor)
+                # NO VA!!:
+                #else:
+                    #E.append(sucesor)
                     print('sucesor {} se agregó a E'.format(str(sucesor)))
+
+            del F[(actual, sucesor)]
         #E.remove(actual)
 
     return Delta

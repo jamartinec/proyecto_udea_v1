@@ -4,6 +4,7 @@ from sortedcontainers import SortedList
 from copy import copy, deepcopy
 import numpy as np
 import pickle as pkl
+import os
 
 
 class ParetoFrontier():
@@ -313,9 +314,15 @@ class Label_feillet2004():
 
         #new_etiqueta = deepcopy(self)
         #new_etiqueta = copy(self)
+
+        lista_estados_guardados = os.listdir(self.ruta_absoluta)
+        #lista_estados_guardados = [f.name for f in os.scandir(self.ruta_absoluta) if f.is_file()]
+        #print(lista_estados_guardados)
+
         ruta = self.ruta_absoluta + '/' + self.nombre_label
-        with open(ruta, 'wb') as file_obj:
-            pkl.dump(self, file_obj)
+        if self.nombre_label not in lista_estados_guardados:
+            with open(ruta, 'wb') as file_obj:
+                pkl.dump(self, file_obj)
 
         with open(ruta, 'rb') as read_file:
             new_etiqueta = pkl.load(read_file)
