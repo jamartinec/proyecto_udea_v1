@@ -113,7 +113,12 @@ def detect_infeasible_nodes_arcs(vertices: list, arcos: list, tiempo: dict,
     for arco in arcos:
         if tiempo[arco] > ventanas_tiempo[arco[1]][1]:
             temp_inf_arcs.add(arco)
+        if ventanas_tiempo[arco[0]][0] + tiempo[arco] > ventanas_tiempo[arco[1]][1]:
+            temp_inf_arcs.add(arco)
+
         if consumo[arco] > ventanas_demanda[arco[1]][1]:
+            demand_inf_arcs.add(arco)
+        if ventanas_demanda[arco[0]][0] + consumo[arco] > ventanas_demanda[arco[1]][1]:
             demand_inf_arcs.add(arco)
 
     # Crear un grafo temporal eliminando todos los arcos que en el paso
@@ -165,7 +170,7 @@ def generar_guardar_instancias(folder_name='solomon_25', tipo_instance=25):
 
 
 if __name__ == '__main__':
-    generar_guardar_instancias('solomon_35', 35)
+    generar_guardar_instancias('solomon_50', 50)
 
 
 

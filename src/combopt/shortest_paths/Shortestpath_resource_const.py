@@ -769,16 +769,17 @@ def espptw_feillet2004(G:Grafo_consumos, s):
             #print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
             if ind_change_front > 0:
                 if sucesor not in E:
+
                     E.appendleft(sucesor)
 
                     # AGREGAR LO SIGUIENTE SI SE QUIERE LA IMPLEMENTACIÓN DEQUE PURA
                     #if sucesor in control_visitados:
                     #if 1 <= Conteo[sucesor] <= 5:
-                    #    E.append(sucesor)
-                    #    Conteo[sucesor] += 1
+                        #E.append(sucesor)
+                        #Conteo[sucesor] += 1
                     #else:
-                    #    E.appendleft(sucesor)
-                    #    Conteo[sucesor] = (Conteo[sucesor] + 1) % 5
+                        #E.appendleft(sucesor)
+                        #Conteo[sucesor] = (Conteo[sucesor] + 1) % 5
                     control_visitados.add(sucesor)
                 # NO VA!!:
                 #else:
