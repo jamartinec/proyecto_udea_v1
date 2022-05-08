@@ -212,7 +212,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
             # Treated_labels[actual]
 
             updated_front, check, discarded_after_update = Treated_labels[actual].add(minlabel,trazador)
-            print('treated_label después de agreagar minlabel',updated_front.list_frontlabels())
+            print('treated_label después de agreagar minlabel', updated_front.list_frontlabels())
             # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
             # agrega a las etiquetas descartadas.
             if check == False:
@@ -676,7 +676,7 @@ def EFF_function_feillet2004(delta_set:set,just_extended:set):
 def espptw_feillet2004(G:Grafo_consumos, s):
     # a partir del grafo dado y los recursos necesito crear una estructura
     # para las etiquetas. De pronto conviene crear una clase, porque las etiquetas
-    # guardan información pero no están cambiando de dimensiones.
+    # guardan información pero no están cambiando de dimensiones. (NO)
 
     # pensemos que pasamos los diccionarios de recursos en una lista
     # y las correspondientes restricciones o ventanas en otra, relacionadas por la posición
