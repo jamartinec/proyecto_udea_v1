@@ -1,18 +1,22 @@
 # coding: utf8
-from cProfile import label
-from calendar import c
-import heapq
-# import pickle as pkl
-from src.combopt.graph import Grafo,Grafo_consumos
-#from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
-from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
-from sortedcontainers import SortedList
+
+# from cProfile import label
+# from calendar import c
+# import heapq
+# from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
+# from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
+# from sortedcontainers import SortedList
+
+
+import pickle as pkl
+import os
 from collections import deque
 
+from src.combopt.graph import Grafo_consumos
+from src.combopt.shortest_paths.feillet_et_al_2004 import Label_feillet2004
 
 
-
-def comparacion_etiqueta_par(etiquetaA: label, etiquetaB: label):
+def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feillet2004):
     # Comparar etiquetaA con etiquetaB.
     # Número de entradas de una etiqueta, contando indicadores, recursos, costo y número de visitas:
     # EtiquetaA: label_new
@@ -424,7 +428,7 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
     # ruta de los archivos pkl que contienen las etiquetas o estados:
 
     #################################################################################
-    # ruta_absoluta = r'D:\UdeA\estados_pd'
+    ruta_absoluta = r'D:\UdeA\estados_pd'
     ###############################################################################
     # crear un diccionario cuyas llaves sean los vértices y cuyos valores sean listas.
     Delta = {vertice: set() for vertice in G.vertices}
@@ -440,10 +444,15 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
 
     # Delta_nombres = {vertice: set() for vertice in G.vertices}
     # Delta[s].add('origen')
-    # Guardar etiqueta origen como pkl:
-    # ruta = ruta_absoluta + '/' + 'origen'
-    # with open(ruta, 'wb') as file_obj:
-    #    pkl.dump(self, file_obj)
+
+    # Guardar etiquetas en Delta[actual] como pkls organizados:
+    ruta_nodo = os.path.join(ruta_absoluta, str(s))
+    print('RUTA NODO', ruta_nodo)
+    os.makedirs(os.path.abspath(ruta_nodo), exist_ok=True)
+    for etiqueta in Delta[s]:
+        ruta_etiqueta = os.path.join(ruta_nodo, etiqueta.nombre_label)
+        with open(ruta_etiqueta, 'wb') as file_obj:
+            pkl.dump(etiqueta, file_obj)
 
     ############################################################################################
 
@@ -467,20 +476,25 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
         actual = E.pop()
         alpha += 1
         print('\nse está procesando el nodo: ', actual)
+
+        ############# #########################################################################
+        # Leer  los elementos de Delta[actual] como pkls (recordar borrarlos cuando no se usen)
+        ruta_nodo = os.path.join(ruta_absoluta, str(actual))
+        # os.makedirs(os.path.abspath(ruta_nodo), exist_ok=True)
+        Delta[actual] = list()
+        for etiqueta_pkl in os.listdir(ruta_nodo):
+            ruta_etiqueta_pkl = os.path.join(ruta_nodo,  etiqueta_pkl)
+            with open(ruta_etiqueta_pkl, 'rb') as read_file:
+                Delta[actual].append(pkl.load(read_file))
+        #########################################################################################
         beta = 0
         for sucesor in G.succesors(actual):
             beta += 1
             # print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
             F[(actual, sucesor)] = set()
-
             gamma = 0
             ######################################################################################
             for etiqueta in Delta[actual]:
-                # for etiqueta_nombre in Delta_nombres[actual]:
-                # Leer el archivo pkl correspondiente
-                # ruta = ruta_absoluta + '/' + etiqueta_nombre
-                # with open(ruta, 'rb') as read_file:
-                #    etiqueta = pkl.load(read_file)
 
                 #######################################################################################
                 # si el nodo sucesor no es un nodo 'inalcanzable'
@@ -502,10 +516,22 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                 # y el frente actualizado
                 ind_change_front, Delta[sucesor] = \
                     EFF_function_feillet2004(delta_set=Delta[sucesor], just_extended=F[(actual, sucesor)])
+
             else:
                 ind_change_front = 0
             # print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
             if ind_change_front > 0:
+                ###################################################################
+                # Guardar las etiquetas en Delta[sucesor]
+                ruta_nodo = os.path.join(ruta_absoluta,  str(sucesor))
+                os.makedirs(os.path.abspath(ruta_nodo), exist_ok=True)
+
+                for etiqueta_sucesor in Delta[sucesor]:
+                    ruta_etiqueta_sucesor_pkl = os.path.join(ruta_nodo, etiqueta_sucesor.nombre_label)
+                    with open(ruta_etiqueta_sucesor_pkl, 'wb') as file_obj:
+                        pkl.dump(etiqueta_sucesor, file_obj)
+
+                ###################################################################
                 if sucesor not in E:
                     E.appendleft(sucesor)
 
@@ -524,6 +550,10 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                     print('sucesor {} se agregó a E'.format(str(sucesor)))
 
             del F[(actual, sucesor)]
+            del Delta[sucesor]
+            Delta[sucesor] = set()
+        del Delta[actual]
+        Delta[actual] = set()
         # E.remove(actual)
 
     return Delta

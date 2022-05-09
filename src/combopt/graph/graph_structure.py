@@ -135,6 +135,9 @@ class Grafo_consumos():
         """
         return self._succesors[v]
 
+    def succesors_all(self):
+        return self._succesors
+
     def predecessors(self, v):
         """
 
@@ -262,6 +265,9 @@ class Grafo_consumos():
 
     def costos_arcos(self,arco):
         return self._costos_arcos[arco]
+
+    def costos_arcos_all(self):
+        return self._costos_arcos
 
 
 
