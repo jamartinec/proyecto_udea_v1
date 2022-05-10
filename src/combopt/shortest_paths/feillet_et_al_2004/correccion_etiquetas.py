@@ -526,6 +526,118 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
     return ind_change_front, delta_set, etiquetas_entran, etiquetas_salen
 
 
+def EFF_function_feillet2004_version3(delta_set: set, just_extended: set):
+    # Esta función recibe dos conjuntos de etiquetas:
+    # delta_set: es el conjunto de etiquetas asociado a cierto nodo j. La invariante de delta_set es un conjunto de Pareto.
+    # just_extended: es el conjunto de etiquetas que recien se obtuvieron como extensión de las etiquetas
+    # de cierto nodo i al nodo j (F_{ij}) en la notación del artículo de Feillet.
+
+    # Esta función corresponde al procedimiento denotado como EFF(Delta) en el artículo de Feillet2004:
+    # Procedimiento que mantiene sólo etiquetas no dominadas (preserva el frente de Pareto).
+
+    # Itera sobre just_extended y delta_set. Desarmamos el conjunto delta_set actual, para volverlo a armar :)
+
+    ind_change_front = 0
+    condicion_nodominado = dict()
+    #etiquetas_salen , etiquetas_entran = set(), set()
+
+    # antes de iniciar la actualización, todas las etiquetas en delta_set (pareto set) tienen la característica
+    # de ser no dominadas
+    for label_old in delta_set:
+        condicion_nodominado[label_old] = 1
+    # print('condicion_nodominado: ')
+    # print(condicion_nodominado)
+
+    while just_extended:
+        label_new = just_extended.pop()
+        # print('label_new: ', label_new.label)
+        # print('tipo de label_new: ', type(label_new))
+        # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
+        condicion_nodominado[label_new] = 1
+
+        # delta_set_copy = deepcopy(delta_set)
+        # while delta_set_copy:
+        for label_old in delta_set:
+            # print('delta_set: ')
+            # print([etiqueta.label for etiqueta in delta_set_copy])
+
+            # pilas, se usa con el while, no con el for
+            # label_old = delta_set_copy.pop()
+
+            # print('label_old: ', label_old.label)
+            msj = comparacion_etiqueta_par(label_new, label_old)
+
+            # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
+
+            # print('msj: ', msj)
+            if msj == 2:
+                # ind_change_front=0
+                break
+
+            # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
+            # en el frente de pareto delta_set.
+            elif msj == -1:
+                condicion_nodominado[label_new] = 0
+
+                # NOTAR QUE PODRÍAMOS ELIMINAR A label_new
+                break
+
+
+            # si label_new < (domina a ) label_old, label_old sale del conjunto delta_set y label_new entra a
+            # delta_set (por la condición invariante no es posible que lo domine otro elemento en delta_set).
+            # PERO PILAS, es posible que label_new domine también a OTROS ELEMENTOS PRESENTES en delta_set
+            # Se registra cambio en el frente de pareto delta_set.
+
+            elif msj == 1:
+                condicion_nodominado[label_old] = 0
+                #etiquetas_salen.add(label_old)
+                # NOTAR QUE PODRÍAMOS ELIMINAR A label_old
+                continue
+
+            # si label old (NO DOMINA A) label new y label_new (NO DOMINA A) label old.  Label_old no sale, pero
+            # aun es posible que label_new domine a otro elemento actual en el frente de pareto delta_set. Por tanto continua
+            # la comparación
+
+            elif msj == 0:
+                continue
+
+        # print('entra al bloque de abajo')
+        # Cuando termine este ciclo for es porque todos los elementos del conjunto delta_set actual fueron comparados
+        # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios
+        # respecto al anterior.
+
+        delta_set_incr = delta_set.union({label_new})
+        # print('delta set incr', delta_set_incr)
+        new_delta_set = set()
+        for label in delta_set_incr:
+            if condicion_nodominado[label] == 1:
+                new_delta_set.add(label)
+        delta_set = new_delta_set
+            # no necesitamos etiquetas dominadas. Una vez dominada, no vuelve a entrar al frente.
+
+        # print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
+
+        # if condicion_nodominado[label_new] == 1:
+            # etiquetas_entran.add(label_new)
+
+        #s = 0
+        #for label in delta_set:
+        #    s += condicion_nodominado[label] - 1
+        # si el frente de pareto (delta set) cambió (algún viejo salió o el nuevo entró)
+        #if s != 0 or condicion_nodominado[label_new] == 1:
+        #    ind_change_front += 1
+        #    delta_set = new_delta_set
+
+        # ¿podemos borrar delta_set incrementado?
+        del delta_set_incr
+
+    #etiquetas_entran = etiquetas_entran.difference(etiquetas_salen)
+
+    # ¿puedo borrar las etiquetas en etiquetas_salen?
+    # ¿mantener sólo los nombres para borrarlas de los directorios?
+
+    return delta_set
+
 def espptw_feillet2004_version2(G: Grafo_consumos, s):
     # a partir del grafo dado y los recursos necesito crear una estructura
     # para las etiquetas. EVITO GENERAR UNA CLASE PARA LAS ETIQUETAS. PARECE QUE ESTO GENERÓ PROBLEMAS
@@ -618,7 +730,8 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
 
                     # print('la nueva etiqueta obtenida es: ')
                     # print(new_label.label)
-                    F[(actual, sucesor)].add(new_label)
+                    F[(actual, sucesor)]= EFF_function_feillet2004_version3(F[(actual, sucesor)], {new_label})
+                    #F[(actual, sucesor)].add(new_label)
 
             etiquetas_entran, etiquetas_salen = set(), set()
             if F[(actual, sucesor)]:
