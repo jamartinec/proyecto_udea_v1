@@ -16,6 +16,7 @@ from src.combopt.graph import Grafo_consumos
 from src.combopt.shortest_paths.feillet_et_al_2004 import Label_feillet2004
 
 
+
 def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feillet2004):
     # Comparar etiquetaA con etiquetaB.
     # Número de entradas de una etiqueta, contando indicadores, recursos, costo y número de visitas:
@@ -163,39 +164,51 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
                 return 0
 
         else:
-            # los conteos de A y B son iguales. # miramos en cuantas A domina a B, en cuantas B domina a A
+            # los conteos de A y B son iguales.
+            # miramos en cuantas A domina a B, en cuantas B domina a A
             # y en cuantas son iguales.
+            setA, setB = set(), set()
             for visita in etiquetaA.label_visitas.keys():
-                if etiquetaB.label_visitas[visita] < etiquetaA.label_visitas[visita]:
-                    B_domina.append(visita)
-                elif etiquetaA.label_visitas[visita] < etiquetaB.label_visitas[visita]:
-                    A_domina.append(visita)
-                else:
-                    AB_igual.append(visita)
-            # Si ningún recurso en B domina al correspondiente recurso en A, y si hay al menos un recurso de A
-            # que domine a B, entonces A domina a B
-            if len(B_domina) == 0 and len(A_domina) > 0:
-                # print('A DOMINA A B')
-                # print('label_new domina a label_old')
+                if etiquetaA.label_visitas[visita] == 1:
+                    setA.add(visita)
+            for visita in etiquetaB.label_visitas.keys():
+                if etiquetaB.label_visitas[visita] == 1:
+                    setB.add(visita)
 
-                return 1
+            if setA == setB:
+                # Son comparables, miramos los recursos:
+                for recurso in etiquetaA.label_recursos.keys():
+                    if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
+                        A_domina.append(recurso)
+                    elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
+                        B_domina.append(recurso)
+                    else:
+                        AB_igual.append(recurso)
+                        # Si ningún recurso en B domina al correspondiente recurso en A, y si hay al menos un recurso de A
+                        # que domine a B, entonces A domina a B
+                if len(B_domina) == 0 and len(A_domina) > 0:
+                    # print('A DOMINA A B')
+                    # print('label_new domina a label_old')
+
+                    return 1
 
 
-            elif len(A_domina) == 0 and len(B_domina) > 0:
-                # print('B DOMINA A A')
-                # print('label old domina a label new')
-                return -1
+                elif len(A_domina) == 0 and len(B_domina) > 0:
+                    # print('B DOMINA A A')
+                    # print('label old domina a label new')
+                    return -1
 
 
-            elif len(A_domina) == 0 and len(B_domina) == 0:
-                # print('A ES IDENTICO A B')
-                return 2
+                elif len(A_domina) == 0 and len(B_domina) == 0:
+                    # print('A ES IDENTICO A B')
+                    return 2
+
+
 
             else:
-                # print('A NO DOMINA A B Y B NO DOMINA A A')
-                # print('ninguno entre labelnew y labelold domina')
-
+                # A no domina a B y B no domina a A
                 return 0
+
 
 
 def EFF_function_feillet2004(delta_set: set, just_extended: set):
@@ -500,28 +513,28 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
         for label in delta_set_incr:
             if condicion_nodominado[label] == 1:
                 new_delta_set.add(label)
-            # no necesitamos etiquetas dominadas. Una vez dominada, no vuelve a entrar al frente.
+        delta_set = new_delta_set
+        # no necesitamos etiquetas dominadas. Una vez dominada, no vuelve a entrar al frente.
 
-        # print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
+
 
         if condicion_nodominado[label_new] == 1:
             etiquetas_entran.add(label_new)
 
-        s = 0
-        for label in delta_set:
-            s += condicion_nodominado[label] - 1
+        #s = 0
+        #for label in delta_set:
+        #    s += condicion_nodominado[label] - 1
         # si el frente de pareto (delta set) cambió (algún viejo salió o el nuevo entró)
-        if s != 0 or condicion_nodominado[label_new] == 1:
-            ind_change_front += 1
-            delta_set = new_delta_set
+        #if s != 0 or condicion_nodominado[label_new] == 1:
+        #    ind_change_front += 1
+        #    delta_set = new_delta_set
 
         # ¿podemos borrar delta_set incrementado?
         del delta_set_incr
 
     etiquetas_entran = etiquetas_entran.difference(etiquetas_salen)
-
-    # ¿puedo borrar las etiquetas en etiquetas_salen?
-    # ¿mantener sólo los nombres para borrarlas de los directorios?
+    if len(etiquetas_salen) > 0 or len(etiquetas_entran) > 0:
+        ind_change_front = 1
 
     return ind_change_front, delta_set, etiquetas_entran, etiquetas_salen
 
@@ -537,61 +550,34 @@ def EFF_function_feillet2004_version3(delta_set: set, just_extended: set):
 
     # Itera sobre just_extended y delta_set. Desarmamos el conjunto delta_set actual, para volverlo a armar :)
 
-    ind_change_front = 0
-    condicion_nodominado = dict()
-    #etiquetas_salen , etiquetas_entran = set(), set()
 
-    # antes de iniciar la actualización, todas las etiquetas en delta_set (pareto set) tienen la característica
-    # de ser no dominadas
+    condicion_nodominado = dict()
     for label_old in delta_set:
         condicion_nodominado[label_old] = 1
-    # print('condicion_nodominado: ')
-    # print(condicion_nodominado)
-
     while just_extended:
         label_new = just_extended.pop()
-        # print('label_new: ', label_new.label)
-        # print('tipo de label_new: ', type(label_new))
-        # label new es NO dominado (i.e. miembro del frente de Pareto hasta que se verifique lo contrario)
         condicion_nodominado[label_new] = 1
-
-        # delta_set_copy = deepcopy(delta_set)
-        # while delta_set_copy:
         for label_old in delta_set:
-            # print('delta_set: ')
-            # print([etiqueta.label for etiqueta in delta_set_copy])
-
-            # pilas, se usa con el while, no con el for
-            # label_old = delta_set_copy.pop()
-
-            # print('label_old: ', label_old.label)
             msj = comparacion_etiqueta_par(label_new, label_old)
 
-            # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
-
-            # print('msj: ', msj)
+            # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto
             if msj == 2:
-                # ind_change_front=0
                 break
 
-            # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
-            # en el frente de pareto delta_set.
+            # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto.
+            # No se registra cambio en el frente de pareto delta_set.
             elif msj == -1:
                 condicion_nodominado[label_new] = 0
-
-                # NOTAR QUE PODRÍAMOS ELIMINAR A label_new
                 break
 
 
             # si label_new < (domina a ) label_old, label_old sale del conjunto delta_set y label_new entra a
             # delta_set (por la condición invariante no es posible que lo domine otro elemento en delta_set).
-            # PERO PILAS, es posible que label_new domine también a OTROS ELEMENTOS PRESENTES en delta_set
+            # pero aun es posible que label_new domine también a OTROS ELEMENTOS PRESENTES en delta_set
             # Se registra cambio en el frente de pareto delta_set.
 
             elif msj == 1:
                 condicion_nodominado[label_old] = 0
-                #etiquetas_salen.add(label_old)
-                # NOTAR QUE PODRÍAMOS ELIMINAR A label_old
                 continue
 
             # si label old (NO DOMINA A) label new y label_new (NO DOMINA A) label old.  Label_old no sale, pero
@@ -601,9 +587,9 @@ def EFF_function_feillet2004_version3(delta_set: set, just_extended: set):
             elif msj == 0:
                 continue
 
-        # print('entra al bloque de abajo')
-        # Cuando termine este ciclo for es porque todos los elementos del conjunto delta_set actual fueron comparados
-        # contra label new. En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios
+        # Cuando termine este ciclo for es porque todos los elementos del conjunto delta_set actual
+        # fueron comparados contra label new.
+        # En ese punto se debe actualizar el conjunto delta set_actual y registrar si hubo cambios
         # respecto al anterior.
 
         delta_set_incr = delta_set.union({label_new})
@@ -613,28 +599,9 @@ def EFF_function_feillet2004_version3(delta_set: set, just_extended: set):
             if condicion_nodominado[label] == 1:
                 new_delta_set.add(label)
         delta_set = new_delta_set
-            # no necesitamos etiquetas dominadas. Una vez dominada, no vuelve a entrar al frente.
 
-        # print('new_delta_set: ', [etiqueta.label for etiqueta in new_delta_set])
 
-        # if condicion_nodominado[label_new] == 1:
-            # etiquetas_entran.add(label_new)
-
-        #s = 0
-        #for label in delta_set:
-        #    s += condicion_nodominado[label] - 1
-        # si el frente de pareto (delta set) cambió (algún viejo salió o el nuevo entró)
-        #if s != 0 or condicion_nodominado[label_new] == 1:
-        #    ind_change_front += 1
-        #    delta_set = new_delta_set
-
-        # ¿podemos borrar delta_set incrementado?
         del delta_set_incr
-
-    #etiquetas_entran = etiquetas_entran.difference(etiquetas_salen)
-
-    # ¿puedo borrar las etiquetas en etiquetas_salen?
-    # ¿mantener sólo los nombres para borrarlas de los directorios?
 
     return delta_set
 
@@ -702,11 +669,11 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
         # Leer  los elementos de Delta[actual] como pkls (recordar borrarlos cuando no se usen)
         ruta_nodo = os.path.join(ruta_absoluta, str(actual))
         # os.makedirs(os.path.abspath(ruta_nodo), exist_ok=True)
-        Delta[actual] = list()
+        Delta[actual] = set()
         for etiqueta_pkl in os.listdir(ruta_nodo):
             ruta_etiqueta_pkl = os.path.join(ruta_nodo,  etiqueta_pkl)
             with open(ruta_etiqueta_pkl, 'rb') as read_file:
-                Delta[actual].append(pkl.load(read_file))
+                Delta[actual].add(pkl.load(read_file))
         #########################################################################################
         beta = 0
         for sucesor in G.succesors(actual):
