@@ -31,7 +31,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
     A_domina, B_domina, AB_igual = list(), list(), list()
 
-    if etiquetaA.costo_acumulado < etiquetaB.costo_acumulado:
+    if etiquetaA.costo_acumulado + 0.001 < etiquetaB.costo_acumulado:
         # B no puede dominar a A, nos preguntamos si A domina a B:
 
         if etiquetaA.conteo <= etiquetaB.conteo:
@@ -47,7 +47,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(A_domina) == len(etiquetaA.label_visitas):
 
                 for recurso in etiquetaA.label_recursos.keys():
-                    if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
+                    if etiquetaA.label_recursos[recurso] + 0.001 <= etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
                     # print('PARECE QUE A DOMINA A B')
@@ -69,7 +69,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             return 0
 
-    elif etiquetaB.costo_acumulado < etiquetaA.costo_acumulado:
+    elif etiquetaB.costo_acumulado + 0.001 < etiquetaA.costo_acumulado:
         # A no puede dominar a B, nos preguntamos si B domina a A:
 
         if etiquetaB.conteo <= etiquetaA.conteo:
@@ -85,7 +85,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(B_domina) == len(etiquetaB.label_visitas):
 
                 for recurso in etiquetaB.label_recursos.keys():
-                    if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
+                    if etiquetaB.label_recursos[recurso] + 0.001 <= etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
                     # print('PARECE QUE B DOMINA A A')
@@ -178,9 +178,9 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if setA == setB:
                 # Son comparables, miramos los recursos:
                 for recurso in etiquetaA.label_recursos.keys():
-                    if etiquetaA.label_recursos[recurso] < etiquetaB.label_recursos[recurso]:
+                    if etiquetaA.label_recursos[recurso] +0.001 < etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
-                    elif etiquetaB.label_recursos[recurso] < etiquetaA.label_recursos[recurso]:
+                    elif etiquetaB.label_recursos[recurso] +0.001 < etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                     else:
                         AB_igual.append(recurso)
@@ -200,7 +200,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
 
                 elif len(A_domina) == 0 and len(B_domina) == 0:
-                    # print('A ES IDENTICO A B')
+                    print('A ES IDENTICO A B')
                     return 2
 
 
@@ -256,6 +256,7 @@ def EFF_function_feillet2004(delta_set: set, just_extended: set):
             # print('msj: ', msj)
             if msj == 2:
                 # ind_change_front=0
+                condicion_nodominado[label_new] = 0
                 break
 
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
@@ -473,6 +474,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # print('msj: ', msj)
             if msj == 2:
                 # ind_change_front=0
+                condicion_nodominado[label_new] = 0
                 break
 
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
@@ -562,6 +564,7 @@ def EFF_function_feillet2004_version3(delta_set: set, just_extended: set):
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto
             if msj == 2:
+                condicion_nodominado[label_new] = 0
                 break
 
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto.

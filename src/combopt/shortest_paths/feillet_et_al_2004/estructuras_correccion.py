@@ -3,6 +3,7 @@
 
 import pickle as pkl
 import os
+import numpy as np
 from src.combopt.graph import Grafo_consumos
 
 
@@ -119,7 +120,7 @@ class Label_feillet2004():
         self.dict_sucesores = dict_sucesores
 
     def update_cost(self,costo_arco):
-        self.costo_acumulado += costo_arco
+        self.costo_acumulado = np.round(self.costo_acumulado + costo_arco,1)
 
     def verificar_recursos(self, sucesor):
         arco = (self.nodo_rel, sucesor)
@@ -136,8 +137,11 @@ class Label_feillet2004():
                 indicador = False
                 break
 
-            if cantidad < self.g_nodo_ventanas[sucesor][recurso][0]:
+            elif cantidad < self.g_nodo_ventanas[sucesor][recurso][0]:
                 nuevos_valores[recurso] = self.g_nodo_ventanas[sucesor][recurso][0]
+
+            elif (self.g_nodo_ventanas[sucesor][recurso][0] <= cantidad) and (cantidad <= self.g_nodo_ventanas[sucesor][recurso][1]):
+                nuevos_valores[recurso] = cantidad
 
         return indicador, nuevos_valores
 
@@ -158,7 +162,7 @@ class Label_feillet2004():
         #    with open(ruta, 'wb') as file_obj:
         #        pkl.dump(self, file_obj)
 
-        ruta_nodo = os.path.join(self.ruta_absoluta , str(self.nodo_rel))
+        ruta_nodo = os.path.join(self.ruta_absoluta, str(self.nodo_rel))
         os.makedirs(os.path.abspath(ruta_nodo), exist_ok=True)
         ruta = os.path.join(ruta_nodo, self.nombre_label)
 
@@ -196,7 +200,7 @@ class Label_feillet2004():
             if self.label_visitas[sucesor] == 1:
                 pass
             else:
-                indicador, nuevos_valores = self.verificar_recursos(sucesor=sucesor)
+                indicador, nuevos_valores = self.verificar_recursos(sucesor)
                 if indicador == False:
                     self.update_label_visitas([sucesor])
                 else:

@@ -75,7 +75,7 @@ def read_instance_solomon(route_instance: str, tipo_instance: int):
     for p in test.keys():
         for q in test.keys():
             if p != q and not( (p==0 and q==fin) or (p==fin and q==0)) and (q!=0) and (p!=fin):
-                costo[(p, q)] = np.round(distancia[(p, q)] - np.random.randint(0, 21), 1)
+                costo[(p, q)] = np.round((distancia[(p, q)] - np.random.randint(0, 21)), 1)
 
     tiempo = dict()
     for p in test.keys():
@@ -170,7 +170,7 @@ def generar_guardar_instancias(folder_name='solomon_25', tipo_instance=25):
 
 
 if __name__ == '__main__':
-    generar_guardar_instancias('solomon_50', 50)
+    generar_guardar_instancias('solomon_5', 5)
 
 
 
