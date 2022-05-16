@@ -15,10 +15,10 @@ from src.combopt.shortest_paths.feillet_et_al_2004 import espptw_feillet2004, es
 
 ## rcsp1 ###
 
-ruta_general = r'./solomon/solomon_50_diccionarios/'
-ruta_resultados = r'./solomon/solomon_50_resultados/'
-instancia_short = 'R101_50' #'C101_50'
-instancia = 'R101_50.pkl' # 'C101_50.pkl' #
+ruta_general = r'./solomon/solomon_5_diccionarios/'
+ruta_resultados = r'./solomon/solomon_5_resultados/'
+instancia_short = 'R101_5' #'C101_50'
+instancia = 'R101_5.pkl' # 'C101_50.pkl' #
 ruta = ruta_general+instancia
 
 with open(ruta, 'rb') as inst_file:
