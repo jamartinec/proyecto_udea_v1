@@ -30,11 +30,12 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
     num_entradas = etiquetaA.longitud
 
     A_domina, B_domina, AB_igual = list(), list(), list()
+    epsilon = 0
 
-    if etiquetaA.costo_acumulado + 0.001 < etiquetaB.costo_acumulado:
+    if etiquetaA.costo_acumulado + epsilon < etiquetaB.costo_acumulado:
         # B no puede dominar a A, nos preguntamos si A domina a B:
 
-        if etiquetaA.conteo <= etiquetaB.conteo:
+        if etiquetaA.conteo  <= etiquetaB.conteo:
 
             for visita in etiquetaA.label_visitas.keys():
                 if etiquetaA.label_visitas[visita] <= etiquetaB.label_visitas[visita]:
@@ -47,7 +48,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(A_domina) == len(etiquetaA.label_visitas):
 
                 for recurso in etiquetaA.label_recursos.keys():
-                    if etiquetaA.label_recursos[recurso] + 0.001 <= etiquetaB.label_recursos[recurso]:
+                    if etiquetaA.label_recursos[recurso] + epsilon <= etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
                     # print('PARECE QUE A DOMINA A B')
@@ -69,7 +70,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             return 0
 
-    elif etiquetaB.costo_acumulado + 0.001 < etiquetaA.costo_acumulado:
+    elif etiquetaB.costo_acumulado + epsilon < etiquetaA.costo_acumulado:
         # A no puede dominar a B, nos preguntamos si B domina a A:
 
         if etiquetaB.conteo <= etiquetaA.conteo:
@@ -85,7 +86,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(B_domina) == len(etiquetaB.label_visitas):
 
                 for recurso in etiquetaB.label_recursos.keys():
-                    if etiquetaB.label_recursos[recurso] + 0.001 <= etiquetaA.label_recursos[recurso]:
+                    if etiquetaB.label_recursos[recurso] + epsilon <= etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
                     # print('PARECE QUE B DOMINA A A')
@@ -121,7 +122,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(A_domina) == len(etiquetaA.label_visitas):
 
                 for recurso in etiquetaA.label_recursos.keys():
-                    if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso]:
+                    if etiquetaA.label_recursos[recurso] + epsilon <= etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
                     # print('PARECE QUE A DOMINA A B')
@@ -148,7 +149,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(B_domina) == len(etiquetaB.label_visitas):
 
                 for recurso in etiquetaB.label_recursos.keys():
-                    if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso]:
+                    if etiquetaB.label_recursos[recurso] + epsilon <= etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
                     # print('PARECE QUE B DOMINA A A')
@@ -178,9 +179,9 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if setA == setB:
                 # Son comparables, miramos los recursos:
                 for recurso in etiquetaA.label_recursos.keys():
-                    if etiquetaA.label_recursos[recurso] +0.001 < etiquetaB.label_recursos[recurso]:
+                    if etiquetaA.label_recursos[recurso] + epsilon < etiquetaB.label_recursos[recurso]:
                         A_domina.append(recurso)
-                    elif etiquetaB.label_recursos[recurso] +0.001 < etiquetaA.label_recursos[recurso]:
+                    elif etiquetaB.label_recursos[recurso] + epsilon < etiquetaA.label_recursos[recurso]:
                         B_domina.append(recurso)
                     else:
                         AB_igual.append(recurso)
@@ -473,6 +474,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
 
             # print('msj: ', msj)
             if msj == 2:
+                print('msj es 2')
                 # ind_change_front=0
                 condicion_nodominado[label_new] = 0
                 break
@@ -480,6 +482,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
             # en el frente de pareto delta_set.
             elif msj == -1:
+                print('msj es -1')
                 condicion_nodominado[label_new] = 0
 
                 # NOTAR QUE PODRÍAMOS ELIMINAR A label_new
@@ -494,6 +497,8 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             elif msj == 1:
                 condicion_nodominado[label_old] = 0
                 etiquetas_salen.add(label_old)
+                print('msj es 1')
+                print('new domina a old, sale old')
                 # NOTAR QUE PODRÍAMOS ELIMINAR A label_old
                 continue
 
@@ -502,6 +507,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # la comparación
 
             elif msj == 0:
+                print('msj es 0')
                 continue
 
         # print('entra al bloque de abajo')
@@ -533,7 +539,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
 
         # ¿podemos borrar delta_set incrementado?
         del delta_set_incr
-
+    print('ETIQUETAS QUE SALEN ', len(etiquetas_salen))
     etiquetas_entran = etiquetas_entran.difference(etiquetas_salen)
     if len(etiquetas_salen) > 0 or len(etiquetas_entran) > 0:
         ind_change_front = 1
@@ -709,7 +715,8 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                 # y el frente actualizado
                 ind_change_front, Delta[sucesor], etiquetas_entran, etiquetas_salen = \
                     EFF_function_feillet2004_version2(delta_set=Delta[sucesor], just_extended=F[(actual, sucesor)])
-
+                print('las etiquetas que salen son tantas: ', len(etiquetas_salen))
+                print('las etiquetas que entran son tantas: ', len(etiquetas_entran))
             else:
                 ind_change_front = 0
             # print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
@@ -727,9 +734,11 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
 
                 for etiqueta_sucesor in list(etiquetas_salen):
                     #print(etiqueta_sucesor.nombre_label)
-                    ruta_etiqueta_sucesor_pkl = os.path.join(ruta_nodo, etiqueta_sucesor.nombre_label+'.pkl')
+                    ruta_etiqueta_sucesor_pkl = os.path.join(ruta_nodo, etiqueta_sucesor.nombre_label)
+                    print(ruta_etiqueta_sucesor_pkl)
                     if os.path.exists(ruta_etiqueta_sucesor_pkl):
                         os.remove(ruta_etiqueta_sucesor_pkl)
+                        print('se removió etiqueta: ', etiqueta_sucesor.nombre_label)
                     ###################################################################
                 del etiquetas_entran, etiquetas_salen
                 if sucesor not in E:
