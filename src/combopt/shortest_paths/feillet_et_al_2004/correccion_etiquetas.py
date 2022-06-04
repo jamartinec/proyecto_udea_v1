@@ -47,8 +47,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             # si A domina a B, mirando ahora los recursos:
 
             if len(A_domina) == len(etiquetaA.label_visitas):
-
                 for recurso in etiquetaA.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x !='demanda' ]:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
@@ -90,6 +90,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             if len(B_domina) == len(etiquetaB.label_visitas):
 
                 for recurso in etiquetaB.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
@@ -131,6 +132,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             if etiquetaA.costo_acumulado <= etiquetaB.costo_acumulado + epsilon:
                 for recurso in etiquetaA.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_recursos):
@@ -145,6 +147,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             elif etiquetaA.costo_acumulado > etiquetaB.costo_acumulado + epsilon:
 
                 for recurso in etiquetaB.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_recursos):
@@ -157,8 +160,11 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
         else:
             # A no domina a B y B no domina a A
             #return 0
+            # el siguiente pedazo es el que funciona para disminuir el # de etiquetas
+
             if etiquetaA.costo_acumulado <= etiquetaB.costo_acumulado + epsilon:
                 for recurso in etiquetaA.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_recursos):
@@ -173,6 +179,7 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             elif etiquetaA.costo_acumulado > etiquetaB.costo_acumulado + epsilon:
 
                 for recurso in etiquetaB.label_recursos.keys():
+                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_recursos):
@@ -446,15 +453,15 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # label_old = delta_set_copy.pop()
 
             # print('label_old: ', label_old.label)
-            print('en EFF_function_feillet2004_version2 vamos a comparar new: {} con old: {}'.format(label_new.nombre_label, label_old.nombre_label))
+            #print('en EFF_function_feillet2004_version2 vamos a comparar new: {} con old: {}'.format(label_new.nombre_label, label_old.nombre_label))
             msj = comparacion_etiqueta_par(label_new, label_old)
-            print('msj es {}'.format(msj))
+            #print('msj es {}'.format(msj))
 
             # si label_new es idéntico a label_old, no se registra cambio en el frente de Pareto y se continúa
 
             # print('msj: ', msj)
             if msj == 2:
-                print('msj es 2')
+                #print('msj es 2')
                 # ind_change_front=0
                 condicion_nodominado[label_new] = 0
                 break
@@ -462,7 +469,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # si label_old  < (domina a) label_new, éste último no entra al frente de Pareto. No se registra cambio
             # en el frente de pareto delta_set.
             elif msj == -1:
-                print('msj es -1')
+                #print('msj es -1')
                 condicion_nodominado[label_new] = 0
 
                 # NOTAR QUE PODRÍAMOS ELIMINAR A label_new
@@ -477,8 +484,8 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             elif msj == 1:
                 condicion_nodominado[label_old] = 0
                 etiquetas_salen.add(label_old)
-                print('msj es 1')
-                print('new domina a old, sale old')
+                #print('msj es 1')
+                #print('new domina a old, sale old')
                 # NOTAR QUE PODRÍAMOS ELIMINAR A label_old
                 continue
 
@@ -681,7 +688,7 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
             except:
                 pass
             Delta_sucesor_nombres = [etiqueta.nombre_label for etiqueta in Delta[sucesor]]
-            print('delta sucesor es: ',Delta_sucesor_nombres)
+            #print('delta sucesor es: ',Delta_sucesor_nombres)
             beta += 1
             # print('\nexploraremos extensiones del nodo actual al nodo: ', sucesor)
             F[(actual, sucesor)] = set()
@@ -700,14 +707,14 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                     # new_label = etiqueta.extend_function_feillet(sucesor)
                     new_label = etiqueta.extend_function_feillet(sucesor, new_name)
 
-                    print('se generó la etiqueta con nombre {}'.format(new_label.nombre_label))
+                    #print('se generó la etiqueta con nombre {}'.format(new_label.nombre_label))
 
                     # print('la nueva etiqueta obtenida es: ')
                     # print(new_label.label)
                     F[(actual, sucesor)]= EFF_function_feillet2004_version3(F[(actual, sucesor)], {new_label})
                     F_actual_sucesor = [etiqueta.nombre_label for etiqueta in F[(actual, sucesor)]]
-                    print('F_{}_{} es: '.format(actual, sucesor))
-                    print(F_actual_sucesor)
+                    #print('F_{}_{} es: '.format(actual, sucesor))
+                    #print(F_actual_sucesor)
                     #F[(actual, sucesor)].add(new_label)
 
             etiquetas_entran, etiquetas_salen = set(), set()
@@ -720,8 +727,8 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                 entran_nombres = [etiqueta.nombre_label for etiqueta in etiquetas_entran]
                 salen_nombres = [etiqueta.nombre_label for etiqueta in etiquetas_salen]
 
-                print('las etiquetas que salen son tantas: ', salen_nombres)
-                print('las etiquetas que entran son tantas: ', entran_nombres)
+                #print('las etiquetas que salen son tantas: ', salen_nombres)
+                #print('las etiquetas que entran son tantas: ', entran_nombres)
             else:
                 ind_change_front = 0
             # print('\nEl indicador de cambio del frente de pareto de sucesor {} es: '.format(str(sucesor)), ind_change_front)
@@ -740,7 +747,7 @@ def espptw_feillet2004_version2(G: Grafo_consumos, s):
                 for etiqueta_sucesor in list(etiquetas_salen):
                     #print(etiqueta_sucesor.nombre_label)
                     ruta_etiqueta_sucesor_pkl = os.path.join(ruta_nodo, etiqueta_sucesor.nombre_label)
-                    print(ruta_etiqueta_sucesor_pkl)
+                    #print(ruta_etiqueta_sucesor_pkl)
                     if os.path.exists(ruta_etiqueta_sucesor_pkl):
                         os.remove(ruta_etiqueta_sucesor_pkl)
                         print('se removió etiqueta: ', etiqueta_sucesor.nombre_label)

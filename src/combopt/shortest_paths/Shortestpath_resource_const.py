@@ -9,6 +9,7 @@ from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
 from sortedcontainers import SortedList
 from collections import deque
 from copy import deepcopy
+import numpy as np
 
 
 
@@ -129,6 +130,54 @@ from copy import deepcopy
 #     P = dict({vertice: Treated_labels[vertice].to_list() for vertice in G.vertices})
 #     print('mire pa que vea', P)
 #     return P
+
+def build_generalized_bucket(ventana_dict:dict, width:float):
+    minimo, maximo = np.inf, -np.inf
+    minimo_set, maximo_set = set(), set()
+    sorted_windows_left = sorted(ventana_dict.items(), key=lambda kv: kv[1][0])
+
+
+    for vertex in ventana_dict:
+        if ventana_dict[vertex][0] < minimo:
+            minimo = ventana_dict[vertex][0]
+            minimo_set.add(vertex)
+        if ventana_dict[vertex][1] > maximo:
+            maximo = ventana_dict[vertex][1]
+            maximo_set.add(vertex)
+    bucket_limits = list()
+    limit = minimo
+    while limit <= maximo:
+        bucket_limits.append(limit)
+        limit += width
+
+    sub_intervalos = list()
+    for limit, nextlimit in zip(bucket_limits, bucket_limits[1:]):
+        for x in sorted_windows_left:
+            a, b = x[1][0], x[1][1]
+
+            if a < limit < b <= nextlimit:
+                sub_intervalos.append([limit, b])
+
+            elif limit <= a < b <= nextlimit: ## unir con el sgt
+                sub_intervalos.append([a, b])
+
+            elif a < limit < nextlimit < b:
+                sub_intervalos.append([limit, nextlimit])
+
+            elif limit <= a < nextlimit < b:
+                sub_intervalos.append([a, nextlimit])
+    limit = bucket_limits[-1]
+    for x in sorted_windows_left:
+        a, b = x[1][0], x[1][1]
+        if limit < b:
+            sub_intervalos.append([limit, b])
+
+
+
+    return sub_intervalos
+
+
+
 
 def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True):
     """First algorithm in Desrochers et al. 1988. (modified)

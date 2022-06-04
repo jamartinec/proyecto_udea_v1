@@ -7,7 +7,7 @@ from src.combopt.shortest_paths import Pareto_Frontier
 from src.combopt.graph import Grafo, Grafo_consumos
 from src.combopt.shortest_paths import spptw_desrochers1988_imp_fullpareto, \
     retrieve_path, retrieve_paths_inpareto, slave_function, Label_feillet2004,\
-    comparacion_etiqueta_par, EFF_function_feillet2004, espptw_feillet2004  # ,verificar_recursos, Extend_function_feillet2004,
+    comparacion_etiqueta_par, EFF_function_feillet2004, espptw_feillet2004, build_generalized_bucket  # ,verificar_recursos, Extend_function_feillet2004,
 
 
 my_graph2 = Grafo([0,1,2,3,4],[(0,1),(0,2),(0,3),(1,4),(2,4),(3,4)],directed=True)
@@ -42,6 +42,23 @@ def test_slave_functions():
     assert Dictio_Paths == {(12,10):[0,1,4], (11,11):[0,2,4] } and \
            Dictio_Paths_set == {(12,10): {0,1,4}, (11,11):{0,2,4}} and \
            Dictio_inner =={(12,10):[1], (11,11):[2]}
+
+def test_build_generalized_bucket():
+    width = min(time.values())
+    print(width)
+
+    sub_intervalos = build_generalized_bucket(window, width)
+    assert sub_intervalos == [[6, 8], [8, 10], [8, 10],
+                              [9, 10], [9, 10],
+                              [10, 12], [10, 12], [10, 12], [10, 12],
+                              [12, 14], [12, 14],
+                              [14, 15]]
+
+
+
+
+
+
 '''
 def test_verificar_recursos():
 
