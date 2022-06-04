@@ -19,7 +19,7 @@ import
 ```
 
 ## Contributing
-Tales y pascuales.
+Jairo
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
