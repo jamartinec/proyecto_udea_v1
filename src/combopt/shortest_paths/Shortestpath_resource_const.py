@@ -183,7 +183,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
     """First algorithm in Desrochers et al. 1988. (modified)
 
     We guarantee at all times that the Pareto Front will be preserved. For this purpose we make use of a
-    class for the Front, so that upgrade operations are efficient. In order to
+    class for the Front, so that upgrade operations are efficient.
     analogous to Dijkstra's algorithm we distinguish two types of labels:
 
     1) The labels that have not been treated or extended. They are stored in:

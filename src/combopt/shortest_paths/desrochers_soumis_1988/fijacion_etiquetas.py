@@ -20,6 +20,7 @@ from copy import deepcopy
 
 ###########################################################################################
 def pareto_set(A):
+    # originalmente en shortest_path_basic
     """ Find the Pareto set.
 
     Given a list of n pairs, find the Pareto Front (for a minimization problem) in O(n log(n)) time, using Timsort first
@@ -54,6 +55,7 @@ def pareto_set(A):
 
 
 def SPPTW_basic(G,s,time,costo,ventana):
+    # originalmente en shortest_path_basic
     """ Inefficient implementation of the SPPTW algorithm.
 
     First attempt of the implementation of Desrochers et al. 1988.
@@ -117,7 +119,9 @@ def SPPTW_basic(G,s,time,costo,ventana):
 
     return P
 
+
 def SPPTW_basic_B(G,s,time,costo,ventana):
+    # originalmente en shortest_path_basic.py
     """ Inefficient implementation of the SPPTW algorithm.
 
         Second attempt of the implementation of Desrochers et al. 1988.
@@ -143,7 +147,7 @@ def SPPTW_basic_B(G,s,time,costo,ventana):
 
     P = dict({vertice: [] for vertice in G.vertices})
     Q = dict({vertice: [(float("inf"),float("inf"))] for vertice in G.vertices})
-    Q_set = dict({vertice:{ (float("inf"),float("inf")) }    for vertice in G.vertices} )
+    Q_set = dict({vertice:{ (float("inf"),float("inf")) }  for vertice in G.vertices} )
     P[s] = [(0, 0)]
     Q[s] = []
     Q_set[s] = set()
@@ -212,7 +216,9 @@ def SPPTW_basic_B(G,s,time,costo,ventana):
 
 ### implementaciones siguiendo desrochers 1988 #######
 
+
 def reduce_to_pareto_frontier(A):
+    # originalmente en shortes_path_basic.py
     """ Find the Pareto frontier of an lex ordered list of pairs.
 
     Given an ordered (Lex) list of n pairs, find the Pareto front (for a minimization problem) in O(n).
@@ -241,6 +247,7 @@ def reduce_to_pareto_frontier(A):
     return pareto
 
 def preserve_pareto_frontier(A, new_label):
+    # originalmente en shortes_path_basic.py
     """ Checks if a new label is efficient, an update the original list.
 
     Given an ordered list (under lexicographical order) of n efficient (time, cost) labels, and a new new_label
@@ -253,12 +260,12 @@ def preserve_pareto_frontier(A, new_label):
         new_label: A new label/pair (u,v).
 
     Returns:
-        A list wit
+        A list containing the resulting Paretro frontier.
 
     """
 
     # Este algoritmo tiene complejidad O(n), donde n es la longitud de A.
-    index=list()
+    index = list()
     contador, comparacion = 0, True
     for i in range(len(A)):
 
@@ -297,6 +304,7 @@ def preserve_pareto_frontier(A, new_label):
     return A
 
 def check_dominance(A,new_label,B):
+    # originalmente en shortest_path_basic.py
     """ Checks if any label in the list A dominates the new_label.
 
     Args:
@@ -318,6 +326,7 @@ def check_dominance(A,new_label,B):
     return  indicador, B
 
 def contain_pareto_frontier(A,new_label,B):
+    # originalmente en shortes_path_basic.py
     """ Find a list that contains the Pareto frontier after adding a new label.
 
     Given a minheap A (under lexicographical order) of n efficient (time, cost) labels, and a new new_label
@@ -354,6 +363,7 @@ def contain_pareto_frontier(A,new_label,B):
     return (A, insertado,B)
 
 def spptw_desrochers1988_imp_MEJORADA(G,s,time,costo,ventana):
+    # originalmente en shortes_path_basic.py
     """Third algorithm in Desrochers et al. 1988.
 
     Garantizamos en todo momento que se preserve el Frente de Pareto. Para ello hacemos uso de una
@@ -473,6 +483,7 @@ def spptw_desrochers1988_imp_MEJORADA(G,s,time,costo,ventana):
     return P
 
 def spptw_desrochers1988_imp1(G,s,time,costo,ventana):
+    # originalmente en shortes_path_basic.py
     """ First algorithm in Desrochers et al. 1988.
 
     In the first implementation each Q_j is an ordered list (Lex order) and after creating a new label in the j node,
@@ -1003,7 +1014,7 @@ def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True)
     Treated_labels = dict({vertice: ParetoFrontier(vertice) for vertice in G.vertices})
     Non_treated_labels = dict({vertice: ParetoFrontier(vertice, [(float("inf"), float("inf"))]) for vertice in G.vertices})
     Non_treated_labels[s] = ParetoFrontier(s,[(0, 0)]) # pilas, no estamos usando trazador!!!
-    label_heap = [( (0,0), s, (None, None) )]
+    label_heap = [((0, 0), s, (None, None))]
     # efe_q  es lo mismo que minlabel (corregir)
     # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
 

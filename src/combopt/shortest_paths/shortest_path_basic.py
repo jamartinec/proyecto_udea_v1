@@ -322,7 +322,7 @@ def SPPTW_basic(G,s,time,costo,ventana):
         # Definir una función que tome actual y efe_q y devuelva los nodos
         # a los cuales se puede extender efe_q desde actual.
         for vecino in G.succesors(actual):
-            if efe_q[0] + time[(actual,vecino)] <= ventana[vecino][1]:
+            if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
                 label_time = max(ventana[vecino][0], efe_q[0] + time[(actual,vecino)])
                 label_cost = efe_q[1] + costo[(actual,vecino)]
                 #agregar la etiqueta (label_time, label_cost) a Q[vecino]
@@ -337,7 +337,7 @@ def SPPTW_basic(G,s,time,costo,ventana):
         QQ = list()
         for clave in Q.keys():
             for par in Q[clave]:
-                QQ.append((par,clave)) # ((tiempo,costo),clave).
+                QQ.append((par, clave)) # ((tiempo,costo),clave).
 
         # Sacamos el mínimo del heap QQ
         root = heapq.heappop(QQ)
@@ -485,7 +485,7 @@ def preserve_pareto_frontier(A, new_label):
         new_label: A new label/pair (u,v).
 
     Returns:
-        A list wit
+        A list containing the resulting Paretro frontier.
 
     """
 
