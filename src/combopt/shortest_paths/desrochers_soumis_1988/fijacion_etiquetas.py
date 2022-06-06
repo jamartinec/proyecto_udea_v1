@@ -1,22 +1,10 @@
 # coding: utf8
-from cProfile import label
-from calendar import c
 import heapq
 import bisect
-
-
-
-from pqdict import pqdict
+import numpy as np
 from blist import sortedset
-
-# import pickle as pkl
-from src.combopt.graph import Grafo, Grafo_consumos
-#from src.combopt.shortest_paths.desrochers_soumis1988.estructuras_fijacion import Pareto_Frontier
-from src.combopt.shortest_paths.desrochers_soumis_1988.estructuras_fijacion import ParetoFrontier
-from sortedcontainers import SortedList
-from collections import deque
-from copy import deepcopy
-
+from src.combopt.shortest_paths.desrochers_soumis_1988.estructuras_fijacion import \
+    ParetoFrontier
 
 ###########################################################################################
 def pareto_set(A):
@@ -737,100 +725,10 @@ def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
     return P
 
 ###################################################################
-def spptw_desrochers1988_imp3V2(G,s,time,costo,ventana):
-    """Third algorithm in Desrochers et al. 1988.
 
-    In implementation #3 each Q_j is an ordered list (Lex order) and after creating a new label in the j node, it is
-    attached after comparing only with the first element in the Q_j list, so that it always contains efficient labels
-    and potentially some non-efficient labels. The new label is also added in a heap, from which the minimum is
-    extracted (efe_q) (and we don't worry about the inefficient labels because they are the last ones to be extracted
-    from the heap). In version 2 we use the class Label.
-
-
-
-    Args:
-        G: A directed instance of Graph class.
-        s: Integer or string denoting the source vertex.
-        time: A dictionary defining a time function on the arcs.
-        costo: A dictionary defining a cost function on the arcs.
-        ventana: A dictionary defining time windows for each vertex.
-
-
-    Returns:
-        A dictionary which for each vertex show the  list of efficient labels from source vertex s.
-
-    """
-
-
-    # Paso 1: inicialización
-    # Crear un diccionario P, donde cada clave es el entero que representa
-    # un vértice del grafo y donde el valor es una lista que contiene
-    # las etiquetas ya extendidas. Crear un diccionario Q similar a P,
-    # donde las listas contienen las etiquetas que aun no han sido extendidas.
-    S = dict({vertice: set() for vertice in G.vertices})
-    P = dict({vertice: [] for vertice in G.vertices})
-    Q = dict({vertice: [(float("inf"), float("inf"))] for vertice in G.vertices})
-    #Q = dict({vertice: [Label(vertice, None, float("inf"), float("inf")) ] for vertice in G.vertices})
-    Q[s] = [(0, 0)]
-    label_heap = [((0,0),s)]
-
-    # Paso 2: Extender efe_q, contener el frente de Pareto
-    # en cada lista Q[j].
-
-    while label_heap:
-
-        (efe_q, actual) = heapq.heappop(label_heap)
-
-        # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna
-        # etiqueta en P[actual]
-        check, S[actual] =  check_dominance(P[actual], efe_q, S[actual])
-        # si alguien en P[actual] domina a efe_q, continuamos con la iteración del while
-        if check == True:
-            pass
-        else:
-            # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas
-            if efe_q in S[actual]:
-                pass
-            else:
-                # Extender la etiqueta efe_q desde nodo actual. Una extensión
-                # es factible si se respetan ventanas de tiempo.
-
-                for vecino in G.succesors(actual):
-                    if efe_q[0] + time[(actual, vecino)] <= ventana[vecino][1]:
-                        label_time = max(ventana[vecino][0], efe_q[0] + time[(actual, vecino)])
-                        label_cost = efe_q[1] + costo[(actual, vecino)]
-                        new_label = (label_time, label_cost)
-                        print('new label', new_label)
-                        # Antes de actualizar el frente de Pareto verificamos si new_label está dominada por
-                        # alguna etiqueta en P[vecino], en cuyo caso no tiene sentido ingresar a las
-                        # posibles etiquetas, pues de ella se generarán más etiquetas dominadas.
-                        check_int, S[vecino] = check_dominance(P[vecino], new_label, S[vecino])
-                        if  check_int == False:
-                            # Actualizar el frente de Pareto (potencialmente hay etiquetas no eficientes)
-                            Q[vecino], insertado, S[vecino] = contain_pareto_frontier(Q[vecino], new_label, S[vecino])
-                            if insertado == True:
-                                heapq.heappush(label_heap, (new_label, vecino))
-                        else:
-                            pass
-                # Como la etiqueta efe_q perteneciente al nodo "actual" ya fue extendida
-                # (es decir, tratada) actualizamos las listas P[actual] y Q[actual]
-
-                P[actual].append(efe_q)
-                heapq.heappop(Q[actual])
-
-
-    # Paso 4: Como para cada nodo j, la lista  P_j puede tener etiquetas no
-    # eficientes, reducimos la lista hasta quedar sólo con el frente de Pareto.
-    # como las listas ya están ordenadas en orden Lex, el costo es O(D), donde D
-    # es el número de posibles etiquetas. NO ENTIENDO POR QUÉ EL ARTÍCULO DICE
-    # QUE ES O(d) con d la máxima amplitud de una ventana de tiempo.
-
-    for vertice in G.vertices:
-        P[vertice] = reduce_to_pareto_frontier(P[vertice])
-
-    return P
 
 ###########################################################################################
+
 def spptw_desrochers1988_imp_fullpareto(G,s,time,costo,ventana,output_type=True):
     """
     First algorithm in Desrochers et al. 1988. (modified)
@@ -1012,3 +910,46 @@ def slave_function(G,source,sink,time,costo,ventana):
     Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set = retrieve_paths_inpareto(sink, Frentes_Pareto)
 
     return Dictio_Paths_Inner, Dictio_Paths, Dictio_Paths_set
+
+
+def build_generalized_bucket(ventana_dict:dict, width:float):
+    minimo, maximo = np.inf, -np.inf
+    minimo_set, maximo_set = set(), set()
+    sorted_windows_left = sorted(ventana_dict.items(), key=lambda kv: kv[1][0])
+
+
+    for vertex in ventana_dict:
+        if ventana_dict[vertex][0] < minimo:
+            minimo = ventana_dict[vertex][0]
+            minimo_set.add(vertex)
+        if ventana_dict[vertex][1] > maximo:
+            maximo = ventana_dict[vertex][1]
+            maximo_set.add(vertex)
+    bucket_limits = list()
+    limit = minimo
+    while limit <= maximo:
+        bucket_limits.append(limit)
+        limit += width
+
+    sub_intervalos = list()
+    for limit, nextlimit in zip(bucket_limits, bucket_limits[1:]):
+        for x in sorted_windows_left:
+            a, b = x[1][0], x[1][1]
+
+            if a < limit < b <= nextlimit:
+                sub_intervalos.append([limit, b])
+
+            elif limit <= a < b <= nextlimit: ## unir con el sgt
+                sub_intervalos.append([a, b])
+
+            elif a < limit < nextlimit < b:
+                sub_intervalos.append([limit, nextlimit])
+
+            elif limit <= a < nextlimit < b:
+                sub_intervalos.append([a, nextlimit])
+    limit = bucket_limits[-1]
+    for x in sorted_windows_left:
+        a, b = x[1][0], x[1][1]
+        if limit < b:
+            sub_intervalos.append([limit, b])
+    return sub_intervalos

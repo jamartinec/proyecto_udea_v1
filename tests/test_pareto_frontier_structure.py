@@ -1,15 +1,11 @@
 # coding: utf8
 
-from pytest import raises
+
 from sortedcontainers import SortedList
 
-from src.combopt.shortest_paths import Pareto_Frontier
+from src.combopt.shortest_paths.desrochers_soumis_1988 import Pareto_Frontier
 vertex = 0
 lista = [(1,5),(2,4),(3,3),(4,2),(5,0.5)]
-
-#def test_pareto_frontier_initialization():
-#    pareto = Pareto_Frontier(vertex,lista)
-#    assert pareto.pareto_set() == [(1,5),(2,4),(3,3),(4,2),(5,0.5)]
 
 def test_preserve_pareto0():
     pareto = Pareto_Frontier(vertex,lista)
@@ -19,7 +15,7 @@ def test_preserve_pareto0():
 
 def test_preserve_pareto3():
     pareto = Pareto_Frontier(vertex, lista)
-    up, ind = pareto.preserve_pareto((0.5,6))
+    new_pareto, ind, up = pareto.preserve_pareto((0.5,6))
     assert ind == True
     assert up == SortedList([(0.5, 6), (1, 5), (2, 4), (3, 3), (4, 2), (5, 0.5)])
 

@@ -1,13 +1,10 @@
 # coding: utf8
 
-from pytest import raises
-from sortedcontainers import SortedList
-
-from src.combopt.shortest_paths import Pareto_Frontier
 from src.combopt.graph import Grafo, Grafo_consumos
-from src.combopt.shortest_paths import spptw_desrochers1988_imp_fullpareto, \
-    retrieve_path, retrieve_paths_inpareto, slave_function, Label_feillet2004,\
-    comparacion_etiqueta_par, EFF_function_feillet2004, espptw_feillet2004, build_generalized_bucket  # ,verificar_recursos, Extend_function_feillet2004,
+from src.combopt.shortest_paths.feillet_et_al_2004 import \
+    Label_feillet2004, comparacion_etiqueta_par,\
+    EFF_function_feillet2004, espptw_feillet2004
+
 
 
 my_graph2 = Grafo([0,1,2,3,4],[(0,1),(0,2),(0,3),(1,4),(2,4),(3,4)],directed=True)
@@ -15,47 +12,6 @@ time = {(0,1):8,(0,2):5,(0,3):12,(1,4):4,(2,4):2,(3,4):4}
 cost  = {(0,1):3,(0,2):5,(0,3):2,(1,4):7,(2,4):6,(3,4):3}
 window = {0:[0,0],1:[6,14],2:[9,12],3:[8,12],4:[9,15]}
 demanda ={0:1,1:1,2:1,3:1,4:1}
-
-
-def test_spptw_desrochers1988_imp_fullpareto():
-    assert spptw_desrochers1988_imp_fullpareto(my_graph2, 0, time, cost, window) == \
-           {0: [(0, 0)], 1: [(8, 3)], 2: [(9, 5)], 3: [(12, 2)], 4: [(11, 11), (12, 10)]}
-
-def test_retrieve_path():
-    Frentes = \
-        spptw_desrochers1988_imp_fullpareto(my_graph2, 0, time, cost, window,False)
-
-    camino_inner, camino, camino_set = retrieve_path((11,11),4,Frentes)
-    assert camino_inner == [2] and camino== [0,2,4] and camino_set == {0,2,4}
-    camino_inner, camino, camino_set = retrieve_path((12,10),4,Frentes)
-    assert camino_inner == [1] and camino == [0,1,4] and camino_set == {0,1,4}
-
-def test_retrieve_paths_inpareto():
-    Frentes = \
-        spptw_desrochers1988_imp_fullpareto(my_graph2, 0, time, cost, window, False)
-    Dictio_inner, Dictio, Dictio_sets = retrieve_paths_inpareto(4,Frentes)
-    assert Dictio_inner== {(12,10):[1], (11,11):[2]} and Dictio == {(12,10):[0,1,4], (11,11):[0,2,4]} and \
-           Dictio_sets == {(12,10):{0,1,4}, (11,11):{0,2,4}}
-
-def test_slave_functions():
-    Dictio_inner, Dictio_Paths, Dictio_Paths_set = slave_function(my_graph2,0,4,time, cost, window)
-    assert Dictio_Paths == {(12,10):[0,1,4], (11,11):[0,2,4] } and \
-           Dictio_Paths_set == {(12,10): {0,1,4}, (11,11):{0,2,4}} and \
-           Dictio_inner =={(12,10):[1], (11,11):[2]}
-
-def test_build_generalized_bucket():
-    width = min(time.values())
-    print(width)
-
-    sub_intervalos = build_generalized_bucket(window, width)
-    assert sub_intervalos == [[6, 8], [8, 10], [8, 10],
-                              [9, 10], [9, 10],
-                              [10, 12], [10, 12], [10, 12], [10, 12],
-                              [12, 14], [12, 14],
-                              [14, 15]]
-
-
-
 
 
 
@@ -385,3 +341,54 @@ def test_espptw_feillet2004_2():
 
     print('#########################')
     #print(Delta_explicit[4])
+
+def test_Label_feillet2004():
+    vertices = [0, 1, 2, 3, 4]
+    arcos = [(0,1), (0,2), (1, 2), (1, 3), (2, 3), (3, 2), (2, 4), (3, 4)]
+    tiempo_nodos = {v: 0 for v in vertices}  # no hay tiempo de espera en los nodos
+    demanda_nodos = {v: 1 for v in vertices}  # supongamos demanda unitaria
+    tiempo_arcos = {(0, 1): 1, (0, 2): 2, (1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+    demanda_arcos = {a: 0 for a in arcos}  # no hay demanda en los arcos, sólo en los nodos
+    ventanas_tiempo = {0: [0, 10], 1: [0, 10], 2: [0, 10], 3: [0, 10], 4: [0, 10], }
+    ventanas_demanda = {v: 5 for v in vertices}
+    # costos_arcos = {arco: 1 for arco in arcos}
+
+    # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
+    costos_arcos = {(0, 1): 2, (0, 2): 2, (1, 2): 2, (1, 3): 2, (2, 3): 1, (3, 2): 1, (2, 4): 2, (3, 4): 2}
+
+    recursos_nodos = {'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
+    recursos_arcos = {'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
+    restricciones_nodos = {'tiempo': ventanas_tiempo, 'demanda': ventanas_demanda}
+
+    mi_grafo_consumos = Grafo_consumos(vertices,
+                                       arcos,
+                                       directed=True,
+                                       recursos_nodos=recursos_nodos,
+                                       recursos_arcos=recursos_arcos,
+                                       restricciones_nodos=restricciones_nodos,
+                                       costos_arcos=costos_arcos)
+
+    etiqueta = Label_feillet2004(nodo_rel=0, G=mi_grafo_consumos)
+
+    assert etiqueta.label_recursos == {'tiempo' : 0, 'demanda': 1}
+
+    assert etiqueta.label_visitas == {0: 1, 1: 0, 2: 0, 3: 0, 4: 0}
+
+    assert etiqueta.label == {'tiempo': 0, 'demanda': 1, 0: 1, 1: 0, 2: 0, 3: 0, 4: 0}
+
+    assert etiqueta.nodo_rel == 0
+
+    assert etiqueta.longitud == 9
+
+    etiqueta.update_nodo_rel(2)
+    assert etiqueta.nodo_rel == 2
+
+    etiqueta.update_label_recursos({'demanda': 1, 'tiempo': 2})
+    assert etiqueta.label_recursos['demanda'] == 1
+    assert etiqueta.label_recursos['tiempo'] == 2
+    assert etiqueta.label['tiempo'] == 2
+
+    etiqueta.update_label_visitas([1,2])
+    assert etiqueta.label_visitas[2] ==1
+    assert etiqueta.label[1] == 1
+    assert etiqueta.conteo == 3

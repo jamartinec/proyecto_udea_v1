@@ -4,14 +4,6 @@ import gurobipy as gp
 from gurobipy import GRB
 from gurobipy import Column
 import numpy as np
-
-from src.combopt.graph import Grafo
-from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
-from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
-from src.combopt.shortest_paths.Shortestpath_resource_const import spptw_desrochers1988_imp_fullpareto
-from sortedcontainers import SortedList
-
-
 def initial_covering_model(customers, fleet):
     # El modelo inicial solamente tiene las variables de holgura para la inicialización
     # (Método de la gran M) y tiene las restricciones, comenzando con la de tamaño de flota

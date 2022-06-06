@@ -1,17 +1,8 @@
 # coding: utf8
 
-# from cProfile import label
-# from calendar import c
-# import heapq
-# from src.combopt.shortest_paths.pareto_frontier_structure import Pareto_Frontier
-# from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier, Label_feillet2004
-# from sortedcontainers import SortedList
-
-
-import pickle as pkl
 import os
+import pickle as pkl
 from collections import deque
-
 from src.combopt.graph import Grafo_consumos
 from src.combopt.shortest_paths.feillet_et_al_2004 import Label_feillet2004
 

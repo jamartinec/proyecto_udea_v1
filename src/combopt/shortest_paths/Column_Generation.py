@@ -3,9 +3,12 @@ import gurobipy as gp
 from gurobipy import GRB, Column
 
 from src.combopt.graph import Grafo
-from src.combopt.shortest_paths.pareto_frontier_optimizado import ParetoFrontier
-from src.combopt.shortest_paths.Shortestpath_resource_const import slave_function
-from src.combopt.shortest_paths.Master_problemCG import initial_covering_model, compute_dual_variables, update_covering_model
+
+from src.combopt.shortest_paths.desrochers_soumis_1988 import slave_function
+from src.combopt.shortest_paths.Master_problemCG import \
+    initial_covering_model,\
+    compute_dual_variables,\
+    update_covering_model
 
 def update_edge_costs(costos, dual_var):
     # siguiendo la convención que el nodo 0 es el depot y que uno ingresa el grafo
