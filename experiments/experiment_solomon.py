@@ -15,8 +15,8 @@ from src.combopt.shortest_paths.feillet_et_al_2004 import \
 
 ruta_general = r'./solomon/solomon_50_diccionarios/'
 ruta_resultados = r'./solomon/solomon_50_resultados/'
-instancia_short = 'C102_50' #'C101_50'
-instancia = 'C102_50.pkl' # 'C101_50.pkl' #
+instancia_short = 'C108_50' #'C101_50'
+instancia = 'C108_50.pkl' # 'C101_50.pkl' #
 ruta = ruta_general+instancia
 
 with open(ruta, 'rb') as inst_file:
@@ -32,7 +32,7 @@ print('el número de arcos negativos es {}'.format(conteo_negativos))
 print('el porcentaje de arcos negativos es {}'.format((conteo_negativos/len(arcos))*100))
 
 
-grafo_consum_C102_50 = Grafo_consumos(vertices,
+grafo_consum_C108_50 = Grafo_consumos(vertices,
                                    arcos,
                                    directed=True,
                                    recursos_nodos=recursos_nodos,
@@ -40,11 +40,11 @@ grafo_consum_C102_50 = Grafo_consumos(vertices,
                                    restricciones_nodos=restricciones_nodos,
                                    costos_arcos=costos_arcos)
 
-num_vertices = grafo_consum_C102_50.num_vertices
+num_vertices = grafo_consum_C108_50.num_vertices
 
 start_time = time.time()
 #Delta = espptw_feillet2004(grafo_consum_R101_50, 0)
-Delta = espptw_feillet2004_version2(grafo_consum_C102_50, 0)
+Delta = espptw_feillet2004_version2(grafo_consum_C108_50, 0)
 
 end_time = time.time()
 #print(Delta)

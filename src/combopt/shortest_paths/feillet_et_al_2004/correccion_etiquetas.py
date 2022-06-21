@@ -38,8 +38,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             # si A domina a B, mirando ahora los recursos:
 
             if len(A_domina) == len(etiquetaA.label_visitas):
-                for recurso in etiquetaA.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x !='demanda' ]:
+                #for recurso in etiquetaA.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x !='demanda' ]:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_visitas) + len(etiquetaA.label_recursos):
@@ -80,8 +80,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             if len(B_domina) == len(etiquetaB.label_visitas):
 
-                for recurso in etiquetaB.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
+                #for recurso in etiquetaB.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_visitas) + len(etiquetaB.label_recursos):
@@ -122,8 +122,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             # Son comparables, miramos el costo y luego los recursos:
 
             if etiquetaA.costo_acumulado <= etiquetaB.costo_acumulado + epsilon:
-                for recurso in etiquetaA.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
+                #for recurso in etiquetaA.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_recursos):
@@ -137,8 +137,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             elif etiquetaA.costo_acumulado > etiquetaB.costo_acumulado + epsilon:
 
-                for recurso in etiquetaB.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
+                #for recurso in etiquetaB.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_recursos):
@@ -154,8 +154,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
             # el siguiente pedazo es el que funciona para disminuir el # de etiquetas
 
             if etiquetaA.costo_acumulado <= etiquetaB.costo_acumulado + epsilon:
-                for recurso in etiquetaA.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
+                #for recurso in etiquetaA.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaA.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaA.label_recursos[recurso] <= etiquetaB.label_recursos[recurso] + epsilon:
                         A_domina.append(recurso)
                 if len(A_domina) == len(etiquetaA.label_recursos):
@@ -169,8 +169,8 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
 
             elif etiquetaA.costo_acumulado > etiquetaB.costo_acumulado + epsilon:
 
-                for recurso in etiquetaB.label_recursos.keys():
-                #for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
+                #for recurso in etiquetaB.label_recursos.keys():
+                for recurso in [x for x in list(etiquetaB.label_recursos.keys()) if x != 'demanda']:
                     if etiquetaB.label_recursos[recurso] <= etiquetaA.label_recursos[recurso] + epsilon:
                         B_domina.append(recurso)
                 if len(B_domina) == len(etiquetaB.label_recursos):
@@ -180,9 +180,6 @@ def comparacion_etiqueta_par(etiquetaA: Label_feillet2004, etiquetaB: Label_feil
                 else:
                     return 0
     #####################################################################################
-
-
-
 
 
 def EFF_function_feillet2004(delta_set: set, just_extended: set):
@@ -485,7 +482,7 @@ def EFF_function_feillet2004_version2(delta_set: set, just_extended: set):
             # la comparación
 
             elif msj == 0:
-                print('msj es 0')
+                #print('msj es 0')
                 continue
 
         # print('entra al bloque de abajo')

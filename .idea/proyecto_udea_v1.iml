@@ -11,6 +11,7 @@
   <component name="PyDocumentationSettings">
     <option name="format" value="GOOGLE" />
     <option name="myDocStringFormat" value="Google" />
+    <option name="renderExternalDocumentation" value="true" />
   </component>
   <component name="ReSTService">
     <option name="DOC_DIR" value="C:\Users\Usuario\PycharmProjects\proyecto_maestria_v1\docs" />

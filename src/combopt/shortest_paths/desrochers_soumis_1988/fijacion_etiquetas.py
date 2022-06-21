@@ -685,7 +685,7 @@ def spptw_desrochers1988_imp3_bucket(G,s,time,costo,ventana):
         for vertice in G.vertices:
             for label in Q[vertice]:
                 if label < upper_bound:
-                    bucket.append((label,vertice))
+                    bucket.append((label, vertice))
 
 
         # Paso 3: Extraer una a una las etiquetas de bucket.
@@ -934,22 +934,42 @@ def build_generalized_bucket(ventana_dict:dict, width:float):
     sub_intervalos = list()
     for limit, nextlimit in zip(bucket_limits, bucket_limits[1:]):
         for x in sorted_windows_left:
+            nodo = x[0]
             a, b = x[1][0], x[1][1]
 
             if a < limit < b <= nextlimit:
-                sub_intervalos.append([limit, b])
+                sub_intervalos.append((nodo, [limit, b]))
 
             elif limit <= a < b <= nextlimit: ## unir con el sgt
-                sub_intervalos.append([a, b])
+                sub_intervalos.append((nodo,  [a, b]))
 
             elif a < limit < nextlimit < b:
-                sub_intervalos.append([limit, nextlimit])
+                sub_intervalos.append((nodo,  [limit, nextlimit]))
 
             elif limit <= a < nextlimit < b:
-                sub_intervalos.append([a, nextlimit])
+                sub_intervalos.append((nodo,  [a, nextlimit]))
     limit = bucket_limits[-1]
     for x in sorted_windows_left:
         a, b = x[1][0], x[1][1]
+        nodo = x[0]
         if limit < b:
-            sub_intervalos.append([limit, b])
+            sub_intervalos.append((nodo,  [limit, b]))
     return sub_intervalos
+
+#CONTINUAR ACÁ:
+'''window = {0: [0, 0], 1: [6, 14], 2: [9, 12], 3: [8, 12], 4: [9, 15]}
+sub_intervalos = build_generalized_bucket(window, 2)
+print(sub_intervalos)
+
+empty_heap = heapq.heapify([])
+print(type(empty_heap))
+
+new_tupla = list()
+for nodo, sub in sub_intervalos:
+    new_tupla.append((nodo, sub, []))
+del (sub_intervalos)
+print(new_tupla)
+
+new_tupla = [(0, [0, 0], [])] + new_tupla
+
+print(new_tupla)'''
