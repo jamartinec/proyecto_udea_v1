@@ -10,7 +10,7 @@ from.fijacion_etiquetas import \
     spptw_desrochers1988_imp3_bucket, min_time_cost, \
     spptw_desrochers1988_imp_fullpareto, retrieve_path, \
     retrieve_paths_inpareto, slave_function, \
-    build_generalized_bucket
+    build_generalized_bucket, spptw_desrochers1988_fullpareto_buckets
 
 
 

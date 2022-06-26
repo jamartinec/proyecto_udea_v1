@@ -10,7 +10,7 @@ from src.combopt.shortest_paths.desrochers_soumis_1988 import  \
     min_time_cost, spptw_desrochers1988_imp3_bucket, \
     spptw_desrochers1988_imp_fullpareto, retrieve_path, \
     retrieve_paths_inpareto, slave_function, \
-    build_generalized_bucket
+    build_generalized_bucket, spptw_desrochers1988_fullpareto_buckets
 
 ############################################
 my_graph = Grafo([1,2,3,4,5,6],[(1,2),(1,3),(2,3),(2,4),(3,4),(3,5),(4,6),(5,4),(5,6)],
@@ -106,8 +106,12 @@ def test_build_generalized_bucket():
     print(width)
 
     sub_intervalos = build_generalized_bucket(window, width)
-    assert sub_intervalos == [[6, 8], [8, 10], [8, 10],
-                              [9, 10], [9, 10],
-                              [10, 12], [10, 12], [10, 12], [10, 12],
-                              [12, 14], [12, 14],
-                              [14, 15]]
+    assert sub_intervalos == [(1, [6, 8]), (1, [8, 10]), (3, [8, 10]),
+                              (2, [9, 10]), (4, [9, 10]),
+                              (1, [10, 12]), (3, [10, 12]), (2, [10, 12]), (4, [10, 12]),
+                              (1, [12, 14]), (4, [12, 14]),
+                              (4, [14, 15])]
+
+def test_spptw_desrochers1988_fullpareto_buckets():
+    P = spptw_desrochers1988_fullpareto_buckets(my_graph2, 0, time, cost, window, True)
+    print(P)

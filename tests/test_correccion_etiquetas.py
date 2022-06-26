@@ -142,7 +142,6 @@ ventanas_demanda = {v: [0, 5] for v in vertices}
 
 # será qué se puede incluir en las etiquetas de las aristas¡? mirar networkx
 costos_arcos = {(1, 2): 2, (1, 3): 2, (2, 3): -2, (3, 2): 1, (2, 4): 2, (3, 4): 2, (4, 5): 2, }
-
 recursos_nodos = {'tiempo': tiempo_nodos, 'demanda': demanda_nodos}
 recursos_arcos = {'tiempo': tiempo_arcos, 'demanda': demanda_arcos}
 restricciones_nodos = {'tiempo': ventanas_tiempo, 'demanda': ventanas_demanda}

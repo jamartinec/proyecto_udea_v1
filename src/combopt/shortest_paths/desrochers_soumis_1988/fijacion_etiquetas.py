@@ -604,7 +604,7 @@ def spptw_desrochers1988_imp3(G,s,time,costo,ventana):
     for vertice in G.vertices:
         P[vertice] = reduce_to_pareto_frontier(P[vertice])
 
-    print('Este es P',P)
+    print('Este es P', P)
     return P
 
 
@@ -628,8 +628,8 @@ def min_time_cost(G,tiempo,costo):
 
     time_cost = list()
     for arista in G.aristas:
-        time_cost.append((tiempo[arista],costo[arista]))
-    (mt,mc) = min(time_cost)
+        time_cost.append((tiempo[arista], costo[arista]))
+    (mt, mc) = min(time_cost)
 
     return (mt,mc)
 
@@ -956,6 +956,135 @@ def build_generalized_bucket(ventana_dict:dict, width:float):
             sub_intervalos.append((nodo,  [limit, b]))
     return sub_intervalos
 
+def build_bucket_label_heap(sub_intervalos):
+    new_tupla = list()
+    for nodo, sub in sub_intervalos:
+        new_tupla.append([nodo, sub, []])
+    del (sub_intervalos)
+    new_tupla = [[0, [0, 0], []]] + new_tupla
+    return new_tupla
+
+
+def spptw_desrochers1988_fullpareto_buckets(G,s,time,costo,ventana,output_type=True):
+    """
+    Implementación del algoritmo de desrochers usando bucket generalizados y estructuras para
+    mantener frente de pareto
+    Args:
+        G: A directed instance of Graph class.
+        s: Integer or string denoting the source vertex.
+        time: A dictionary defining a time function on the arcs.
+        costo: A dictionary defining a cost function on the arcs.
+        ventana: A dictionary defining time windows for each vertex.
+
+
+    Returns:
+        A dictionary which for each vertex show the  list of efficient labels from source vertex s.
+
+    """
+
+
+    # Paso 1: inicialización
+    # Crear un diccionario TRATADAS, donde cada clave es el entero que representa un vértice del grafo y donde el valor
+    # es una lista que contiene las etiquetas ya extendidas. Crear un diccionario NO TRATADAS similar,
+    # donde las listas contienen las etiquetas que aun no han sido extendidas.
+    Discard_sets= dict({vertice: set() for vertice in G.vertices})
+    Treated_labels = dict({vertice: ParetoFrontier(vertice) for vertice in G.vertices})
+    Non_treated_labels = dict({vertice: ParetoFrontier(vertice, [(float("inf"), float("inf"))]) for vertice in G.vertices})
+    Non_treated_labels[s] = ParetoFrontier(s, [(0, 0)]) # pilas, no estamos usando trazador!!!
+    (width, mc) = min_time_cost(G, time, costo)
+    sub_intervalos = build_generalized_bucket(ventana, width)
+    bucket_label_heap = build_bucket_label_heap(sub_intervalos)
+
+    label_heap = [((0, 0), s, (None, None))]
+    bucket_label_heap[0][2] = label_heap
+    # efe_q  es lo mismo que minlabel (corregir)
+    # Paso 2: Extender efe_q, preservar el frente de Pareto de TRATADOS y NO TRATADOS.
+    while bucket_label_heap:
+        print('bucket_label_heap\n', bucket_label_heap)
+        bucket = bucket_label_heap.pop(0)
+        print('bucket \n', bucket)
+        label_heap = bucket[2]
+        while label_heap:
+            print('labelheap\n', label_heap)
+            # Se extrae la menor etiqueta en orden lexicográfico de cualquiera de los nodos.
+            (minlabel, actual, trazador) = heapq.heappop(label_heap)
+            print('minlabel!!', minlabel)
+            print('actual!', actual)
+            # la etiqueta efe_q sale de NO TRATADAS[actual]
+            print('Non_treatedlabelsANTES de borrar minlabel', Non_treated_labels[actual].list_frontlabels())
+            #¿hay algún problema con que la función retorne la misma instancia de la clase?
+            Non_treated_labels[actual] = Non_treated_labels[actual].Delete_label(minlabel)
+            print('Non_treatedlabelsDespues de borrar minlabel', Non_treated_labels[actual].list_frontlabels())
+
+            # verificamos si efe_q ya está en el conjunto de etiquetas que fueron excluidas. De estarlo nos devolvemos y
+            # extraemos (pop) una nueva etiqueta del minheap.
+            if minlabel in Discard_sets[actual]:
+                continue
+            else:
+                # Verificamos si la etiqueta extraida: efe_q del nodo actual, es dominada por alguna etiqueta en
+                # Treated_labels[actual]
+
+                updated_front, check, discarded_after_update = Treated_labels[actual].add(minlabel, trazador)
+                print('treated_label después de agreagar minlabel\n', updated_front.list_frontlabels())
+                # si check es false es porque new_label es dominado y no se inserta en el frente de pareto. En tal caso se
+                # agrega a las etiquetas descartadas.
+                if check == False:
+                    Discard_sets[actual].add(minlabel)
+                    print('No se agregó minlabel y se agregó a DISCARDSETS')
+                    continue
+                else:
+                    # si la etiqueta fue insertada en el frente de pareto, actualizamos éste, y también las posibles
+                    # etiquetas descartadas tras la actualización del frente.
+                    print('MINLABEL SI SE AGREGÓ A TREATED LABELS')
+                    Treated_labels[actual] = updated_front
+                    Discard_sets[actual].union(discarded_after_update)
+
+                    # Extender la etiqueta efe_q desde actual. Una extensión es factible si se cumple ventanas de tiempo.
+                    for vecino in G.succesors(actual):
+                        if minlabel[0] + time[(actual, vecino)] <= ventana[vecino][1]:
+                            label_time = max(ventana[vecino][0], minlabel[0] + time[(actual, vecino)])
+                            label_cost = minlabel[1] + costo[(actual, vecino)]
+                            new_label = (label_time, label_cost)
+                            new_trazador= (actual, minlabel)
+                            print('newlabel es', new_label, 'esta en nodo:', vecino, 'y su trazador(act, minlabel) es', new_trazador)
+
+                            # Antes de actualizar el frente de Pareto de etiquetas NO TRATADAS de vecino, verificamos si
+                            # new_label está en DESCARTADAS o está dominada por alguna etiqueta en TRATADAS[vecino], en cuyo
+                            # caso no se ingresa a NO TRATADAS , pues a partir de ella se generarán más etiquetas dominadas.
+
+                            if new_label in Discard_sets[vecino]:
+                                continue
+                            else:
+                                ## ACÁ SOLO VERIFICAR si new label es dominado por alguien en TRATADOS (sin agregar)
+                                check = Treated_labels[vecino].check_dominance(new_label)
+                                if check == True:
+                                    Discard_sets[vecino].add(new_label)
+                                    continue
+                                else:
+                                    Non_treated_labels[vecino], insertado, U = Non_treated_labels[vecino].add(new_label, new_trazador)
+                                    if insertado == True:
+                                        # heapq.heappush(label_heap, (new_label, vecino,new_trazador))
+                                        # en la versión con buckets nos toca mirar en cuál bucket debe incluirse la
+                                        #etiqueta recien extendida
+                                        for buck in bucket_label_heap:
+                                            print('este es buck en el for: \n', buck)
+                                            if buck[0] == vecino and  buck[1][0] <=label_time and label_time <=buck[1][1]:
+                                                heapq.heappush(buck[2], (new_label, vecino,new_trazador))
+                                                break
+
+                                    else:
+                                        pass
+    if output_type== True:
+        P = dict({vertice: Treated_labels[vertice].list_frontlabels() for vertice in G.vertices})
+        #print('mire pa que vea', P)
+        return P
+    else:
+        return Treated_labels
+
+# PILAS, NO ES BUENA IDEA GUARDAR CAMINOS EN DICCIONARIOS CON KEYS ETIQUETAS: pueden haber dos etiquetas
+# exactamente iguales producidas mediante caminos distintos. Posibilidad: Guardar como listas de tripletas
+# donde la primera entrada es la etiqueta, la segunda entrada es el camino como lista y la tercera entrada
+# sea el conjunto de vértices incluidos en dicho camino.
 #CONTINUAR ACÁ:
 '''window = {0: [0, 0], 1: [6, 14], 2: [9, 12], 3: [8, 12], 4: [9, 15]}
 sub_intervalos = build_generalized_bucket(window, 2)
